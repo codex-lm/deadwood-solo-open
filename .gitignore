@@ -1,4 +1,6 @@
 node_modules/
+dist-solo/
+.work/
 *.log
 .env
 .env.local

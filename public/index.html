@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101916">
-  <title>Deadwood — Last Light</title>
+  <title>Deadwood Solo Open</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101916'/%3E%3Cpath d='M14 30 32 14 50 30v23H14Z' fill='none' stroke='%23edbd77' stroke-width='4'/%3E%3Cpath d='M20 38h24M20 46h24' stroke='%23edbd77' stroke-width='4'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -85,7 +85,6 @@
       </section>
       <button id="practice-button" class="practice-entry" data-i18n="practice.try">Essayer les armes ↗</button>
       <p class="practice-note" data-i18n="practice.homeNote">Stand privé : toutes les armes, cibles immobiles et vie illimitée. Aucun achat nécessaire.</p>
-      <a class="weapon-comparison-link" href="/weapon-comparison.html" target="_blank" rel="noopener" data-i18n="practice.compare">Comparer les armes ↗</a>
       <p id="menu-error" class="error" role="alert" hidden></p>
       <button id="reload-page" class="text-button" type="button" data-i18n="version.reload" hidden>Recharger la page ↻</button>
       <p class="setup-note"><span class="tiny-house">⌂</span> <span data-i18n="setup.note.first">Chaque joueur ouvre cette adresse sur son ordinateur.</span><br><span data-i18n="setup.note.second">Un code commun vous réunit dans la même cabane.</span></p>
@@ -162,7 +161,6 @@
       <p id="room-share-help" data-i18n="roomShare.help">Le lien ouvre directement ce refuge. Tu peux aussi le sélectionner et le copier.</p><p id="room-share-status" role="status" aria-live="polite"></p>
     </section>
     <section id="dual-controls" class="dual-controls" hidden><label for="dual-secondary" data-i18n="dual.secondary">Arme secondaire</label><select id="dual-secondary"></select><button id="dual-toggle" class="outline" type="button" data-i18n="dual.toggle">X · DEUX ARMES</button><small data-i18n="dual.hint"></small></section>
-    <a class="weapon-comparison-link" href="/bonus-catalog.html" target="_blank" rel="noopener" data-i18n="bonus.catalog">Bonus · niveaux 1–8 ↗</a>
     <details class="aim-diagnostic"><summary data-i18n="aim.title">Diagnostic du regard</summary>
       <label><input id="aim-diagnostic-enable" type="checkbox"> <span data-i18n="aim.enable">Activer le relevé local</span></label>
       <p data-i18n="aim.help">Facultatif : garde les derniers mouvements de souris et positions de jeu en mémoire, sans envoi ni sauvegarde automatique. Après un saut du regard, F8 fige le relevé. Échap permet ensuite de l’afficher ici. Désactiver efface tout.</p>
@@ -177,7 +175,6 @@
       <div class="practice-select"><label for="practice-weapon" data-i18n="practice.weapon">TOUTES LES ARMES</label><select id="practice-weapon"></select><button id="practice-equip" class="outline" data-i18n="practice.equip">Équiper</button></div>
       <div class="practice-actions"><button id="practice-refill" class="outline" data-i18n="practice.refill">Refaire les stocks</button><button id="practice-targets" class="outline" data-i18n="practice.targets">Recréer les cibles</button><button id="practice-radar" class="outline" data-i18n="practice.radar">Essayer le radar</button><button id="practice-backpack" class="outline" data-i18n="practice.backpack">Essayer le sac</button><button id="practice-raiders" class="outline" data-i18n="raid.try">Essayer les pillards</button></div>
       <p id="practice-status" class="practice-status" role="status"></p>
-      <a class="weapon-comparison-link" href="/weapon-comparison.html" target="_blank" rel="noopener" data-i18n="practice.compare">Comparer les armes ↗</a>
       <small data-i18n="practice.limits">Les cibles ne ripostent pas. Cet essai ne mesure pas la difficulté d’une vraie vague.</small>
     </div>
     <button id="room-pause-button" class="outline room-pause-button" data-i18n="pause.stop" hidden>Mettre en pause · P</button><button id="save-game-button" class="outline save-game-button" type="button" data-i18n="save.button" hidden>Sauvegarder la partie</button><small id="save-game-hint" class="save-game-hint" hidden></small><p id="save-game-status" class="save-game-status" role="status" aria-live="polite" hidden></p><button id="resume-button" class="primary"><span data-i18n="pause.resume">Retour au refuge</span> <span>↗</span></button><button id="survivor-sheet-toggle" class="outline survivor-sheet-toggle" type="button" aria-pressed="false">Fiche du survivant : cachée · Tab</button><div class="settings-row"><label for="volume" data-i18n="pause.volume">VOLUME</label><input id="volume" type="range" min="0" max="1" step="0.05" value="0.55"></div><div class="settings-row"><label for="music-volume" data-i18n="pause.musicVolume">VOLUME DE LA MUSIQUE</label><input id="music-volume" type="range" min="0" max="1" step="0.05" value="1"></div><div class="music-picker"><label class="field-label" for="pause-music-theme" data-i18n="music.label">MUSIQUE</label><select id="pause-music-theme"><option value="tactical-a" data-i18n="music.tacticalA">Tactical Resolve · A</option><option value="tactical-b" data-i18n="music.tacticalB">Tactical Resolve · B</option><option value="covert-a" data-i18n="music.covertA">Covert Ostinato · A</option><option value="covert-b" data-i18n="music.covertB">Covert Ostinato · B</option><option value="night-a" data-i18n="music.nightA">Night Resolve · A</option><option value="night-b" data-i18n="music.nightB">Night Resolve · B</option></select><small data-i18n="music.note">Choix personnel. Les thèmes des colosses et de la finale restent les mêmes.</small></div><div class="settings-row"><label for="sensitivity" data-i18n="pause.sensitivity">SENSIBILITÉ</label><input id="sensitivity" type="range" min="0.0006" max="0.004" step="0.0001" value="0.0018"></div>

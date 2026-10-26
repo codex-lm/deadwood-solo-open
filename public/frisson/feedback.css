@@ -17,12 +17,12 @@
 /* Score panel and the wave card's score line: the pixel skull, no glow. */
 .score-panel .score-label{color:#9a9284}
 .score-panel #score-value{color:#e6dccb}
-.score-panel #score-value::before{content:'';flex:none;width:14px;height:14px;text-shadow:none;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'><path fill='%23d8cfbd' d='M1 0h5v1H1zM0 1h7v1H0zM0 2h1v2H0zM3 2h1v2H3zM6 2h1v2H6zM0 4h3v1H0zM4 4h3v1H4zM1 5h5v1H1zM1 6h1v1H1zM3 6h1v1H3zM5 6h1v1H5z'/></svg>") 0 0/14px 14px no-repeat}
+.score-panel #score-value::before{content:'';flex:none;width:14px;height:14px;text-shadow:none;background:url("./feedback-asset-1.svg") 0 0/14px 14px no-repeat}
 .score-panel #score-value.score-bump{transform:scale(1.08);color:#f0e6d2}
 .kills-line strong{color:#c9bfae;text-shadow:0 2px 8px #000,0 0 10px #4a060655}
 .kills-line small{color:#9a9284}
 .wave-card-score{color:#d8cfbd}
-.wave-card-score::before{content:'';display:inline-block;width:14px;height:14px;margin-right:6px;vertical-align:-2px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'><path fill='%23d8cfbd' d='M1 0h5v1H1zM0 1h7v1H0zM0 2h1v2H0zM3 2h1v2H3zM6 2h1v2H6zM0 4h3v1H0zM4 4h3v1H4zM1 5h5v1H1zM1 6h1v1H1zM3 6h1v1H3zM5 6h1v1H5z'/></svg>") 0 0/14px 14px no-repeat}
+.wave-card-score::before{content:'';display:inline-block;width:14px;height:14px;margin-right:6px;vertical-align:-2px;background:url("./feedback-asset-2.svg") 0 0/14px 14px no-repeat}
 /* Wallet and coins: tarnished brass, still money; a smaller bump, no outer glow. The label too, never Famille's amber. */
 .wallet{color:#b0915a}
 .wallet strong{color:#c8ad78}

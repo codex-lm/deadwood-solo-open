@@ -5,7 +5,6 @@ import { LEVEL } from './public/level-config.js';
 // Mixed into RoomSimulation by installSaveGame (like supplyMethods); only
 // hoisted declarations are used at install time (simulation.mjs imports
 // this module while it is itself being evaluated).
-import { randomBytes } from 'node:crypto';
 import { LEVEL_ID } from './public/level-id.js';
 import { MAX_WAVES, DIFFICULTY_LEVELS, FRIENDLY_FIRE_LEVELS, AMBIANCES, ARMOR, PICKUPS, BARRICADE_BOARDS, GRENADES, isFrissonLike, waveBalance } from './public/rules.js';
 import { SUPPLY_BONUSES, MAX_BONUS_LEVEL, BACKPACK, LATE_SUPPLIES, upgradedWeapon } from './public/weapon-upgrades.js';
@@ -51,7 +50,9 @@ const PLAYER_TRANSIENT = new Set(['input', '_weaponHand']);
 const neutralInput = () => ({ forward: 0, strafe: 0, sprint: false, crouch: false });
 const sanitizeName = value => String(value).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'Survivant';
 const sameName = (a, b) => typeof a === 'string' && typeof b === 'string' && a.trim().toLocaleLowerCase('fr') === b.trim().toLocaleLowerCase('fr');
-const seatId = () => `seat-${randomBytes(6).toString('hex')}`;
+// Web Crypto is available both in modern browsers and the supported Node
+// runtime. Saves therefore use the same identifiers without a server import.
+const seatId = () => `seat-${Array.from(globalThis.crypto.getRandomValues(new Uint8Array(6)), byte => byte.toString(16).padStart(2, '0')).join('')}`;
 
 let Base = null, WEAPON_TABLE = null, PUSH = null, TICK = 1 / 30, schemas = null, templateCache = null;
 // Template numbers no rule below gives a range (the coverage test lists them).

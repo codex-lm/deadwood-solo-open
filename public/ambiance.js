@@ -2,7 +2,8 @@
 // Frisson (15+) is an opt-in pack under ./frisson/, and this file is the only
 // one that may name that folder: no three, no assets, nothing of the pack is
 // fetched until a Frisson room asks for it.
-export const FRISSON_BASE = '/frisson/';
+import { gameAsset } from './asset-path.js';
+export const FRISSON_BASE = gameAsset('frisson/');
 // The ambiances drawn with the pack, and what each asks of it (ctx.variant):
 // Frisson as it is, and Frisson léger (the owner, 15 October 2026), the same
 // pack with the rounder B heads, half the blood and the light pickups. The

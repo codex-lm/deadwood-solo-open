@@ -10,6 +10,7 @@
 import * as THREE from '/vendor/three.module.js';
 import { readGlb } from './glb.js';
 import { BLOOD_EMISSIVE } from './blood.js';
+import * as bundledSurfaces from './cabin-surfaces.js';
 
 export const CABIN_FILES = Object.freeze({ surfaces: 'cabin-surfaces.js', dressing: 'cabin.glb' });
 export const DRESS_MATERIALS = Object.freeze(['prop', 'metal', 'mark', 'grime', 'web']);
@@ -128,10 +129,9 @@ export function surfacesFrom(module, { half = false, document: doc } = {}) {
 }
 // The recipes module from its bytes: a data module with no imports, run as
 // one (the bytes come from the pack's own folder, like every part).
-export async function importSurfaces(bytes) {
-  const text = new TextDecoder().decode(bytes instanceof ArrayBuffer || ArrayBuffer.isView(bytes) ? bytes : new Uint8Array(0));
-  if (!text.trim()) throw new Error(`${CABIN_FILES.surfaces} is empty`);
-  return import(`data:text/javascript;charset=utf-8,${encodeURIComponent(text)}`);
+export async function importSurfaces() {
+  // Recipes are part of the reviewed static bundle, never evaluated from bytes.
+  return bundledSurfaces;
 }
 
 // --- The dressing ----------------------------------------------------------------------
@@ -236,7 +236,7 @@ export async function install(ctx = {}) {
   };
   let surfaces = null, props = null;
   try {
-    surfaces = surfacesFrom(await importSurfaces(await fetchAsset(CABIN_FILES.surfaces)), { half: DRESS_PRESETS[preset].half, document: ctx.document ?? globalThis.document });
+    surfaces = surfacesFrom(await importSurfaces(), { half: DRESS_PRESETS[preset].half, document: ctx.document ?? globalThis.document });
     made.textures.push(...surfaces.textures);
   } catch (error) {
     if (signal?.aborted) { free(); throw signal.reason; }

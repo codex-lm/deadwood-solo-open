@@ -1,4 +1,7 @@
 import * as THREE from '/vendor/three.module.js';
+import { SoloSocket as WebSocket } from './solo-transport.js';
+import { WEAPONS as SOLO_WEAPONS } from '../simulation.mjs';
+import { gameAsset } from './asset-path.js';
 import { LEVEL, IS_SUPERMARKET } from './level-config.js';
 import { createMapContext, mapForRoomCode } from './map-context.js';
 import { createWorld, createZombie, animateZombie, createSurvivor, createWeapon, animateMeleeWeapon, animateWeaponMechanism, createExtraction, createPickup, createGroundWeapon, setGroundWeaponPose, createGrenadeProjectile, animateGrenadeProjectile, createGrenadeExplosion, createFlameStream, setZombieBurn, setZombieHealth, setZombieFrost, setPickupFill, animatePickup, setSurvivorWeapon, setSurvivorSecondaryWeapon, animateSurvivor, fireSurvivor, survivorMuzzle, createTracer, startZombieDeath, animateZombieDeath, createRaider, animateRaider, startRaiderDeath, animateRaiderDeath, disposeZombie, setWeaponHeat, createStragglerMarker, getSurvivorStyle, STYLED_PICKUP_KINDS } from './world.js';
@@ -620,15 +623,12 @@ function characterBadge(player, element) {
 // The server build this page was loaded with; a different one on joining
 // means the game was updated since and this page must be reloaded.
 let pageBuild = null;
-fetch(mapContext.endpoint('/version.json')).then(r => r.json()).then(data => { if (typeof data?.build === 'string') pageBuild = data.build; }).catch(() => {});
-fetch(mapContext.endpoint('/network.json')).then(r => r.json()).then(data => {
-  if (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname) && data.urls?.length) shareOrigin = data.urls[0];
-  refreshShareAddress();
-}).catch(() => {});
+// A published solo edition keeps its rendering and simulation in the same bundle.
+// There is no remote build, network-discovery endpoint or gameplay server.
 
 function updateConnection(connected, text) {
   $('connection-dot').classList.toggle('offline', !connected);
-  writeText($('connection-label'), text);
+  writeText($('connection-label'), () => t(connected && myId ? 'solo.connected' : 'connection.idle'));
 }
 // The end of a wave, in one card: what was refilled, what to do, and what
 // you did (score and kills since the wave began).
@@ -1419,10 +1419,7 @@ function refreshBonusTray(self) {
 // table comes from the server (/world.json), so the weapon lines are computed
 // exactly like the server's weaponProfile.
 let survivorSheetShown = readSheetShown(controllerStorage());
-let survivorSheetContentKey = '', survivorSheetGeometryKey = '', survivorSheetRect = null, survivorSheetCards = [], serverWeapons = null;
-fetch(mapContext.endpoint('/world.json')).then(response => response.json()).then(data => {
-  if (data?.weapons && typeof data.weapons === 'object') { serverWeapons = data.weapons; survivorSheetContentKey = ''; refreshSurvivorSheet(); }
-}).catch(() => {});
+let survivorSheetContentKey = '', survivorSheetGeometryKey = '', survivorSheetRect = null, survivorSheetCards = [], serverWeapons = SOLO_WEAPONS;
 function survivorSheetVisible(self = myPlayer()) {
   return survivorSheetShown && inGame && Boolean(self) && self.waiting !== true && Boolean(snapshot) && !finishedPhase(snapshot.phase) && snapshot.phase !== 'extraction';
 }
@@ -1741,7 +1738,7 @@ function refreshAmmunition(self) {
     el.classList.toggle('locked', !entry);
     el.classList.toggle('empty', Boolean(entry && !meleeProfile(entry.weapon) && entry.ammo === 0));
     const silhouette = entry && Object.hasOwn(WEAPON_MOVEMENT, entry.weapon)
-      ? `url("/hud-silhouettes/${silhouetteStyle}/${entry.weapon}.png")` : 'none';
+      ? `url("${gameAsset(`hud-silhouettes/${silhouetteStyle}/${entry.weapon}.png`)}")` : 'none';
     if (el.dataset.silhouette !== silhouette) {
       el.dataset.silhouette = silhouette;
       el.style.setProperty('--weapon-silhouette', silhouette);
@@ -1838,8 +1835,9 @@ function requestRoomPause(paused = snapshot?.paused !== true) {
   resetInput();
   pauseRequestTarget = paused;
   closeSupplyMenu(false);
-  document.exitPointerLock?.();
-  showPause(); refreshPauseControls();
+  if (paused) { document.exitPointerLock?.(); showPause(); }
+  else $('pause').hidden = true;
+  refreshPauseControls();
   send({type:'pause',paused});
 }
 // Any admitted survivor saves a night once it is paused (owner, 18 October).
@@ -2123,7 +2121,7 @@ function connect({ practice = false, load = null } = {}) {
   writeText($('practice-status'), '');
   sound.updateScene(null, false);
   $('connect-button').disabled = true; $('practice-button').disabled = true; $('menu-error').hidden = true; $('reload-page').hidden = true;
-  const socket = new WebSocket(mapContext.socketUrl());
+  const socket = new WebSocket();
   websocket = socket;
   intentionalClose = false;
   const playerName = $('player-name').value.trim() || t('setup.namePlaceholder');
@@ -2160,7 +2158,7 @@ function connect({ practice = false, load = null } = {}) {
       refreshShareAddress();
       const url = new URL(location.href);
       if (practice) { url.searchParams.delete('room'); url.searchParams.set('practice', '1'); }
-      else { url.searchParams.delete('practice'); url.searchParams.set('room', room); }
+      else { url.searchParams.delete('practice'); url.searchParams.delete('room'); }
       history.replaceState(null, '', url);
       $('load-panel').hidden = true;
       startUpload();
@@ -2224,6 +2222,7 @@ function refreshState(oldSelf) {
   // snapshots and camera-height resets must never overwrite the local aim.
   initializeAim(self);
   const paused = snapshot.paused === true, pauseChanged = paused !== lastRoomPaused;
+  const requestedResume = pauseRequestTarget === false && !paused;
   if (pauseChanged) {
     resetInput();
     meleeAnimations.clear(); sound.releaseMelee?.(); sound.releaseAssault?.();
@@ -2272,7 +2271,7 @@ function refreshState(oldSelf) {
   if (!$('lobby').hidden) {
     playerList($('lobby-players')); renderAmbiance(); renderDifficulty(); renderFriendlyFire(); renderCompanions(); renderCharacterChoice();
     refreshStartButton();
-    writeText($('lobby-note'), practice ? () => t('practice.pauseDescription') : snapshot.phase === 'lobby' ? host ? 'Tu peux commencer seul. Les autres peuvent te rejoindre en partie.' : 'L’hôte lance la nuit. Tu peux déjà visiter le refuge.' : 'La nuit a commencé. Ton équipe t’attend dans la cabane.');
+    writeText($('lobby-note'), () => t(practice ? 'practice.pauseDescription' : 'lobby.note'));
   }
   writeText($('phase-label'), paused ? () => t('pause.stoppedLabel') : practice ? () => t('practice.title') : phaseNames[snapshot.phase] || 'REFUGE');
   const maxWaves = snapshot.maxWaves ?? MAX_WAVES;
@@ -2383,12 +2382,17 @@ function refreshState(oldSelf) {
     if (!['extraction', 'victory'].includes(snapshot.phase) && ['extraction', 'victory'].includes(lastPhase)) { extraction.reset(); cameraReady = false; flashlight.visible = inGame; }
     lastPhase = snapshot.phase;
   }
-  if ((paused && ($('pause').hidden || pauseChanged || hostChanged)) || (!$('pause').hidden && (phaseChanged || hostChanged || pauseChanged))) showPause();
+  if (!requestedResume && ((paused && ($('pause').hidden || pauseChanged || hostChanged)) || (!$('pause').hidden && (phaseChanged || hostChanged || pauseChanged)))) showPause();
   lastHostId = snapshot.hostId;
   refreshPauseControls();
   if (oldSelf?.downed && !self.downed && self.alive) toast('Tu es de nouveau sur pied.');
   refreshInteraction(self); refreshOutside(self); refreshRadarMap(performance.now()); sound.updateScene(snapshot, inGame && !paused);
   if (pauseChanged && paused) world.update(visualSeconds(), {snapshot,myId,active:inGame,camera,survivors:playerMeshes});
+  if (requestedResume && inGame) {
+    $('pause').hidden = true;
+    sound.unlock();
+    requestPointer();
+  }
 }
 // French keeps zero singular, as the existing threat count does.
 function raidPlural(count) { return getLanguage() === 'en' ? count !== 1 : count > 1; }
@@ -3356,12 +3360,17 @@ function shotRumble(weapon) {
 }
 function showPause(description) {
   if (!inGame || supplyMenu || finishedPhase(snapshot?.phase) || (snapshot?.phase === 'extraction' && !snapshot.paused)) return;
+  // Opening a solo menu really pauses the local night, including on focus loss.
+  if (roomPauseAvailable() && !snapshot.paused && pauseRequestTarget !== true) {
+    requestRoomPause(true);
+    return;
+  }
   stopRumble(activePad);
   controllerPlaying = false; resetInput();
   const paused = snapshot?.paused === true, host = snapshot?.hostId === myId;
   $('pause').hidden = false;
   writeText($('pause-title'), paused ? () => t('pause.stoppedTitle') : snapshot?.practice === true ? () => t('practice.title') : snapshot?.phase === 'lobby' && host ? 'La nuit t’attend.' : 'Reprendre ton poste.');
-  writeText($('pause-description'), paused ? () => t(host ? 'pause.stoppedHost' : 'pause.stoppedGuest') : description || (snapshot?.practice === true ? () => t('practice.pauseDescription') : snapshot?.phase === 'lobby' ? host ? 'Ton équipe est prête. Lance la nuit quand tu veux.' : 'L’hôte lancera la nuit. Tu peux explorer le refuge.' : () => t('pause.description')));
+  writeText($('pause-description'), paused ? () => t('pause.stoppedHost') : description || (snapshot?.practice === true ? () => t('practice.pauseDescription') : snapshot?.phase === 'lobby' ? () => t('lobby.note') : () => t('pause.description')));
   writeText($('resume-button'), paused ? () => t(host ? 'pause.continue' : 'pause.waiting') : snapshot?.practice === true ? () => t('practice.return') : snapshot?.phase === 'lobby' && host ? 'Lancer la nuit ↗' : 'Retour au refuge ↗');
   refreshPauseControls();
 }
@@ -3689,7 +3698,7 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); graphics.resize(innerWidth, innerHeight); recordAim('resize', () => ({ geometry: viewGeometry() })); });
 canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); resetInput(); $('boot-error').hidden = false; writeText($('boot-error-detail'), 'Le navigateur a perdu sa connexion à la carte graphique. Recharge la page.'); });
-const entryUrl = new URL(location.href), urlRoom = entryUrl.searchParams.get('room');
+const entryUrl = new URL(location.href), urlRoom = null;
 if (entryUrl.searchParams.get('practice') === '1') $('practice-button').focus();
 else if (urlRoom) { setJoinMode(true); $('room-code').value = urlRoom.slice(0, 6).toUpperCase(); }
 // Only an explicit click on the other map creates this one-time draft. Bare

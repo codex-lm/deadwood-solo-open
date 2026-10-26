@@ -1,15 +1,18 @@
 {
-  "name": "deadwood-last-light",
-  "version": "0.1.0",
+  "name": "deadwood-solo-open",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "An original cooperative Three.js zombie survival game for a local network.",
+  "description": "Deadwood Solo Open: a single-player 3D survival FPS executed entirely in the browser.",
   "license": "MIT",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "start": "node server.mjs",
+    "start": "node scripts/serve-solo.mjs",
+    "build": "node scripts/build-solo.mjs",
+    "test:solo": "node --test test/solo-transport.test.mjs test/solo-build.test.mjs test/save-game.test.mjs test/save-sheets.test.mjs",
+    "start:original": "node server.mjs",
     "start:lan": "node lan-gateway.mjs",
     "start:supermarket": "node start-supermarket.mjs",
     "start:hospital": "node start-hospital.mjs",
@@ -23,5 +26,8 @@
   "dependencies": {
     "three": "0.180.0",
     "ws": "8.21.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

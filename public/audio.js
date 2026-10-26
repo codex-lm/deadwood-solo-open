@@ -162,7 +162,7 @@ export class SoundEngine {
     this.manifestPromise=(async()=>{
       try {
         const fetcher=this.fetcher||globalThis.fetch;if(!fetcher)return;
-        const response=await fetcher('/audio/manifest.json',{redirect:'error'});if(!response.ok)return;
+        const response=await fetcher(gameAsset('audio/manifest.json'),{redirect:'error'});if(!response.ok)return;
         const data=await response.json();
         const entry=value=>{
           const src=this.localAsset(value?.src);if(!src)return null;
@@ -199,7 +199,7 @@ export class SoundEngine {
       record.promise=(async()=>{
         try {
           const fetcher=this.fetcher||globalThis.fetch;
-          const response=await fetcher(src,{redirect:'error'});if(!response.ok)return;
+          const response=await fetcher(gameAsset(src),{redirect:'error'});if(!response.ok)return;
           record.buffer=await this.ctx.decodeAudioData(await response.arrayBuffer());
         } catch(_){ /* A missing or unsupported file falls back to procedural sound. */ }
         finally {record.settled=true;}
@@ -1032,3 +1032,4 @@ export class SoundEngine {
     this.raiderLast.clear();this.raidAnnounced=false;this.lastRaidAlarmAt=-Infinity;this.lastRaidSquelchAt=-Infinity;this.stopSources();
   }
 }
+import { gameAsset } from './asset-path.js';

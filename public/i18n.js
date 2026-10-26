@@ -1,7 +1,7 @@
 // Language belongs to the browser, so teammates can use different languages.
-const STORAGE_KEY = 'deadwood-language';
-const validLanguage = language => language === 'en' ? 'en' : 'fr';
-let language = 'fr';
+const STORAGE_KEY = 'deadwood-solo-language';
+const validLanguage = language => language === 'fr' ? 'fr' : 'en';
+let language = 'en';
 try { language = validLanguage(globalThis.localStorage?.getItem(STORAGE_KEY)); } catch {}
 
 const text = {
@@ -899,6 +899,39 @@ const phases = {
   gameover: ['LA LUMIÈRE S’EST ÉTEINTE', 'THE LIGHT WENT OUT'],
 };
 
+// Edition-specific presentation. The original translation table is retained
+// for gameplay messages; the solo edition does not advertise multiplayer.
+Object.assign(text, {
+  'brand.home': ['Deadwood Solo Open accueil', 'Deadwood Solo Open home'],
+  'connection.idle': ['SOLO · DANS TON NAVIGATEUR', 'SOLO · IN YOUR BROWSER'],
+  'solo.connected': ['PARTIE SOLO · LOCALE', 'SOLO GAME · LOCAL'],
+  'controls.guide': ['ZQSD : bouger · Souris : viser · Maj : courir · C : s’accroupir · Espace : sauter · R : recharger · E : interagir · V : poser l’arme · G : grenade · B : parapluie · Tab : fiche · P ou Échap : pause', 'WASD: move · Mouse: aim · Shift: run · C: crouch · Space: jump · R: reload · E: interact · V: drop weapon · G: grenade · B: umbrella · Tab: survivor sheet · P or Esc: pause'],
+  'intro.title.first': ['Deadwood', 'Deadwood'],
+  'intro.title.second': ['Solo Open', 'Solo Open'],
+  'intro.description.second': ['Une nuit en solo. L’extraction t’attend au matin.', 'One solo night. Rescue comes at dawn.'],
+  'setup.title': ['Ta nuit commence ici.', 'Your night starts here.'],
+  'setup.subtitle': ['La partie tourne entièrement dans ton navigateur.', 'The whole game runs in your browser.'],
+  'setup.common': ['ton équipement initial', 'your starting equipment'],
+  'setup.loadoutLabel': ['Équipement initial', 'Starting loadout'],
+  'setup.pistol': ['PISTOLET · ÉQUIPEMENT INITIAL', 'PISTOL · STARTING LOADOUT'],
+  'setup.open': ['Préparer ma nuit', 'Prepare my night'],
+  'setup.note.first': ['Un joueur, une cabane, aucune connexion multijoueur.', 'One player, one cabin, no multiplayer connection.'],
+  'setup.note.second': ['Tes sauvegardes restent dans ce navigateur.', 'Your saves stay in this browser.'],
+  'footer.experience': ['UNE NUIT DE SURVIE EN SOLO', 'A SOLO SURVIVAL NIGHT'],
+  'lobby.eyebrow': ['TON REFUGE EST PRÊT', 'YOUR SHELTER IS READY'],
+  'lobby.title': ['Une cabane. Toi. La nuit.', 'One cabin. You. The night.'],
+  'lobby.subtitle': ['Choisis la difficulté, puis commence ta nuit en solo.', 'Choose your difficulty, then start your solo night.'],
+  'lobby.note': ['Tu es seul dans cette édition. Tu peux sauvegarder une nuit en pause.', 'This edition is single-player. Save your night from the pause menu.'],
+  'pause.description': ['Le menu arrête ta nuit. Reprends quand tu es prêt.', 'The menu pauses your night. Resume when you are ready.'],
+  'pause.stoppedHost': ['La simulation, les dégâts et les chronomètres sont arrêtés. Reprends la partie quand tu es prêt.', 'Simulation, damage and timers are paused. Resume when you are ready.'],
+  'pause.hostOnly': ['Pause', 'Pause'],
+  'pause.waiting': ['Partie en pause', 'Game paused'],
+  'downed.help': ['Utilise ton kit de relève si tu en as un.', 'Use a revive kit if you have one.'],
+  'downed.return': ['Une nouvelle nuit te permettra de réessayer.', 'Start another night to try again.'],
+  'save.restored': ['Partie reprise à la vague {wave}. Appuie sur P pour continuer.', 'Game restored at wave {wave}. Press P to continue.'],
+  'sheet.statDetail.chemistry': ['Grenades, aura de froid et kits de relève.', 'Grenades, frost aura and revive kits.'],
+});
+
 export function getLanguage() { return language; }
 export function setLanguage(value) {
   const next = validLanguage(value), changed = next !== language;
@@ -949,7 +982,7 @@ for (const [source, target] of [
   ['LE JOUR S’EST LEVÉ', 'DAWN HAS BROKEN'], ['Vous êtes rentrés.', 'You made it home.'],
   ['VOUS AVEZ TENU', 'YOU HELD ON'], ['REPRENEZ SOUFFLE', 'CATCH YOUR BREATH'],
   ['Munitions et santé rétablies. Répare les barricades.', 'Ammo and health restored. Repair the barricades.'],
-  ['RESTEZ ENSEMBLE', 'STAY TOGETHER'], ['LA NUIT COMMENCE', 'THE NIGHT BEGINS'],
+  ['RESTEZ ENSEMBLE', 'HOLD THE SHELTER'], ['LA NUIT COMMENCE', 'THE NIGHT BEGINS'],
   ['Tu es de nouveau sur pied.', 'You are back on your feet.'], ['Le colosse final est là. Restez ensemble !', 'The final colossus is here. Stay together!'],
   ['Un colosse approche. Prépare tes armes !', 'A colossus is coming. Get your weapons ready!'],
   ['Une barricade a cédé !', 'A barricade has fallen!'],
@@ -1007,7 +1040,7 @@ const patterns = [
   [/^(Un coéquipier peut te relever en maintenant E(?:, même dehors\. Rentre après la réanimation\.| \(5 s\)\.)) (\d+) s avant l’élimination\.$/, (_, help, seconds) => `${help.includes('dehors') ? 'A teammate can revive you by holding E, even outside. Get back inside after revival.' : 'A teammate can revive you by holding E (5 s).'} ${seconds} s until elimination.`],
   [/^(\d+) BRÈCHES?$/, (_, count) => `${count} ${Number(count) === 1 ? 'BREACH' : 'BREACHES'}`],
   [/^(\d+) vagues traversées\. L’hélicoptère vous a ramenés à l’abri\. (\d+) éliminations · score d’équipe (\d+)\.$/, (_, waves, kills, score) => `${waves} waves survived. The helicopter brought you to safety. ${kills} kills · team score ${score}.`],
-  [/^Votre équipe a atteint la vague (\d+)\/(\d+)\. La forêt se souviendra de vous\.$/, (_, wave, total) => `Your team reached wave ${wave}/${total}. The forest will remember you.`],
+  [/^Votre équipe a atteint la vague (\d+)\/(\d+)\. La forêt se souviendra de vous\.$/, (_, wave, total) => `You reached wave ${wave}/${total}. The forest will remember you.`],
   [/^VAGUE (\d+)$/, (_, wave) => `WAVE ${wave}`],
   [/^VOUS AVEZ TENU LES (\d+) VAGUES$/, (_, waves) => `YOU SURVIVED ALL ${waves} WAVES`],
   [/^(.+) achetée · −(\d+) pièces(?: · remplace (.+))?$/, (_, weapon, price, previous) => `${englishWeapon(weapon)} purchased · −${price} coins${previous ? ` · replaces ${englishWeapon(previous)}` : ''}`],
