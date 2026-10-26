@@ -599,3 +599,15 @@ body:has(#survivor-sheet:not([hidden])) #breach-alert{top:14px;max-width:130px;w
 /* The solo edition retains shared game element IDs without offering co-op UI. */
 .solo-unavailable { display: none !important; }
 .solo-credit { color: #a4b2a7; font-size: .75rem; line-height: 1.5; margin-top: 1.25rem; }
+
+/* The game name is the title; the edition is a quieter, separate subtitle. */
+.intro > .solo-title { margin-bottom: 10px; }
+.intro > .solo-edition {
+  margin: 0 0 26px;
+  color: #cfb58c;
+  font-size: clamp(17px, 1.7vw, 24px);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: .08em;
+  text-transform: none;
+}

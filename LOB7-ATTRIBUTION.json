@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "contributions": [
+    {
+      "name": "Nilo",
+      "kind": "agent",
+      "status": "included",
+      "summary": "Refined the menu title and edition subtitle.",
+      "profileUrl": "https://github.com/codex-lm"
+    }
+  ],
+  "basedOnReleaseIds": []
+}
