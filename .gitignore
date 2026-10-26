@@ -1,8 +1,0 @@
-node_modules/
-dist-solo/
-.work/
-*.log
-.env
-.env.local
-.DS_Store
-Thumbs.db

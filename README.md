@@ -1,60 +1,11 @@
 # Deadwood Solo Open
 
-A single-player 3D survival FPS that runs entirely in your browser. Defend the cabin, survive twenty waves, fight the raiders and reach extraction. Rendering, movement, combat, enemy AI and campaign simulation all run on your device.
-
 Published by Nilo. Created with Codex, Claude and Kimi.
 
-This is an independent browser adaptation of [Deadwood - Last Light](https://github.com/cedricbernadac/deadwood-open), based on upstream commit `35ee1efed1bb448f9e2b6d66f7a6915e0e16bf90`. The upstream game and its hosted multiplayer service remain independent.
+[Play on LOB7](https://lob7.com/games/bg_s_07513039-c17e-4900-afac-bb2509cac6c4).
 
-## Scope and implementation plan
+This branch is a self-contained static edition: one survivor, the cabin and twenty waves. The game simulation runs entirely in your browser. Serve this directory with any static web server and open index.html. No gameplay backend or API key is needed.
 
-1. Reuse the original cabin, rendering, weapons, enemies and twenty-wave rules.
-2. Run the original simulation locally and replace its server transport with a single-survivor session. No gameplay server, WebSocket, worker or API key.
-3. Provide solo menus, English by default, actual pause on menu/focus loss, a practice range, difficulty selection and local save/load. French is optional.
-4. Build a static export, test the game and its save round trip, publish the exact edition on LOB7, then withdraw the former external-link editions while preserving their history.
+Build tooling, original modules, tests and the implementation plan are on the [development branch](https://github.com/codex-lm/deadwood-solo-open/tree/codex/solo-browser).
 
-The first edition includes the cabin. Multiplayer, AI teammates and the other maps are outside this solo edition. The source retains the upstream development files so the adaptation and original rules can be reviewed and tested.
-
-## Build and preview
-
-With Node.js 22 or newer:
-
-```sh
-npm ci
-npm run build
-npm start
-```
-
-Open `http://localhost:4173`. This server only serves static files from `dist-solo/`; it runs no game logic. Any static web host can serve that directory. The main publication branch contains this clean export and its editable JavaScript source. Development source, build tooling and tests are retained on `codex/solo-browser`.
-
-```sh
-npm run test:solo
-```
-
-## Play
-
-Choose your survivor and prepare your night. Select difficulty in the solo lobby, then start. Keyboard and mouse or an Xbox-compatible gamepad are supported by the original game controls.
-
-| Action | Keyboard and mouse |
-| --- | --- |
-| Move and look | WASD, ZQSD or arrows / mouse |
-| Fire / heavy melee or scope | Left / right click |
-| Run / crouch / jump | Shift / C / Space |
-| Reload / switch weapons | R / 1-4 or mouse wheel |
-| Interact / drop weapon | E / V |
-| Grenade / umbrella | G / B |
-| Menu and pause | Esc / P |
-| Next wave early | N |
-
-Click the view to capture the mouse and enable audio. Opening the menu or leaving the window pauses the night; resume deliberately. Save from the pause menu. Saves stay in browser storage, with JSON export/import for moving them. Browser storage can be unavailable or cleared; keep an exported save if it matters. Cooperative saves with multiple survivors cannot be loaded into this edition.
-
-The first visit downloads the game and its assets. Once loaded, gameplay needs no server connection; this does not promise an offline-installable app or a cached reload without a connection.
-
-## Licences and provenance
-
-- Code: MIT. The upstream copyright and licence remain in `LICENSE`.
-- Media: CC BY 4.0, with original attribution and generation sources in `ASSETS.md` (named `ASSETS-LICENSE.md` in the static export).
-- Three.js: MIT; its licence notice is retained in the export.
-- Some sounds from the hosted upstream game are not redistributable and were already excluded from the open sources. Synthesised fallbacks remain in use.
-
-The development history preserves the upstream sources and the solo adaptation. Publication credits describe the publisher and development assistance; the upstream copyright and media attribution stay in the legal notices.
+Code is MIT; media are CC BY 4.0. See LICENSE, ASSETS-LICENSE.md and NOTICE.md for the preserved upstream attribution and dependency notices.

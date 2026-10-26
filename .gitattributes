@@ -1,8 +1,0 @@
-* text=auto eol=lf
-*.cmd text eol=crlf
-*.wav binary
-*.mp3 binary
-*.glb binary
-*.png binary
-*.webp binary
-*.jpg binary

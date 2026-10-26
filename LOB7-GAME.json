@@ -1,0 +1,27 @@
+{
+  "title": "Deadwood Solo Open",
+  "description": "A single-player 3D survival FPS executed entirely in your browser. Defend a forest cabin, survive twenty waves and reach extraction. Published by Nilo. Created with Codex, Claude and Kimi.",
+  "entrypoint": "index.html",
+  "license": "MIT",
+  "genre": [
+    "Survival",
+    "FPS"
+  ],
+  "themes": [
+    "Forest"
+  ],
+  "controls": [
+    "Keyboard and mouse or an Xbox-compatible gamepad.",
+    "WASD/ZQSD or arrows: move; mouse: look; left click: fire.",
+    "Shift: run; C: crouch; Space: jump; R: reload.",
+    "1–4 or wheel: weapons; E: interact; V: drop weapon.",
+    "G: grenade; B: umbrella; N: next wave.",
+    "Esc or P: pause; resume and save from the menu."
+  ],
+  "credits": [
+    "Published by Nilo.",
+    "Created with Codex, Claude and Kimi.",
+    "Based on Deadwood — Last Light (https://github.com/cedricbernadac/deadwood-open)."
+  ],
+  "assetsLicense": "Media are licensed under CC BY 4.0. Original attribution and generation sources are preserved in ASSETS-LICENSE.md. Some sounds from the hosted upstream game are excluded and use synthesised fallbacks."
+}
