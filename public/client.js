@@ -176,6 +176,8 @@ let secondaryGun = null, secondaryGunId = null, secondaryFiring = false, seconda
 let dualCycleSince = null, dualCycleConsumed = false;
 let websocket = null;
 let myId = null;
+let selectedSoloMode = 'classic';
+const isLastNight = () => snapshot?.mode === 'last-night';
 let room = null;
 let snapshot = null;
 let inGame = false;
@@ -1849,14 +1851,15 @@ function refreshSaveControls() {
   if (snapshot && savePausedSeen && !paused && !saveRequested) $('save-game-status').hidden = true;
   if (snapshot) savePausedSeen = paused;
   $('save-game-button').hidden = !night;
-  $('save-game-button').disabled = !night || !paused || saveRequested;
-  $('save-game-hint').hidden = !night || paused;
-  if (night && !paused) writeText($('save-game-hint'), () => t(snapshot.hostId === myId ? 'save.pauseFirstHost' : 'save.pauseFirstGuest'));
+  $('save-game-button').disabled = !night || !paused || saveRequested || isLastNight();
+  $('save-game-hint').hidden = !night || (paused && !isLastNight());
+  if (night && isLastNight()) writeText($('save-game-hint'), () => t('solo.noSave'));
+  if (night && !paused && !isLastNight()) writeText($('save-game-hint'), () => t(snapshot.hostId === myId ? 'save.pauseFirstHost' : 'save.pauseFirstGuest'));
 }
 function saveReason(code) { return t(`save.reason.${typeof code === 'string' && t(`save.reason.${code}`) !== `save.reason.${code}` ? code : 'error'}`); }
 function saveStatus(text) { writeText($('save-game-status'), text); $('save-game-status').hidden = false; }
 function requestSave() {
-  if (!savableNight() || snapshot.paused !== true || saveRequested) return;
+  if (!savableNight() || snapshot.paused !== true || saveRequested || isLastNight()) return;
   saveRequested = true; saveStatus(() => t('save.saving')); refreshSaveControls();
   send({ type: 'save-game' });
 }
@@ -2131,7 +2134,7 @@ function connect({ practice = false, load = null } = {}) {
   }, 8000);
   const sheet = practice ? null : mapSheetDraft ?? characterPicker.joinSheet();
   mapSheetDraft = null;
-  socket.addEventListener('open', () => socket.send(JSON.stringify({ type: 'join', room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...(sheet ? { sheet } : {}), ...(practice ? { practice: true } : {}), ...(ambiance ? { ambiance } : {}), ...(pageBuild ? { build: pageBuild } : {}) })));
+  socket.addEventListener('open', () => socket.send(JSON.stringify({ type: 'join', room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...(!practice && !load && selectedSoloMode === 'last-night' ? { mode: 'last-night' } : {}), ...(sheet ? { sheet } : {}), ...(practice ? { practice: true } : {}), ...(ambiance ? { ambiance } : {}), ...(pageBuild ? { build: pageBuild } : {}) })));
   socket.addEventListener('message', event => {
     if (socket !== websocket) return;
     let message;
@@ -2271,7 +2274,7 @@ function refreshState(oldSelf) {
   if (!$('lobby').hidden) {
     playerList($('lobby-players')); renderAmbiance(); renderDifficulty(); renderFriendlyFire(); renderCompanions(); renderCharacterChoice();
     refreshStartButton();
-    writeText($('lobby-note'), () => t(practice ? 'practice.pauseDescription' : 'lobby.note'));
+    writeText($('lobby-note'), () => t(practice ? 'practice.pauseDescription' : isLastNight() ? 'solo.lastNightLobby' : 'lobby.note'));
   }
   writeText($('phase-label'), paused ? () => t('pause.stoppedLabel') : practice ? () => t('practice.title') : phaseNames[snapshot.phase] || 'REFUGE');
   const maxWaves = snapshot.maxWaves ?? MAX_WAVES;
@@ -2279,6 +2282,11 @@ function refreshState(oldSelf) {
   writeText($('wave-number'), practice ? () => t('practice.invulnerable') : `${String(Math.min(maxWaves, Math.max(1, snapshot.wave))).padStart(2, '0')}/${maxWaves}`);
   const finalBoss = snapshot.zombies.some(zombie => zombie.boss);
   writeText($('wave-details'), raidDetails(practice, practiceTargetCount) ?? (practice ? () => t('practice.details', { count: practiceTargetCount }) : snapshot.phase === 'wave' ? `${finalBoss ? 'COLOSSE FINAL · ' : ''}${snapshot.remaining} ${snapshot.remaining > 1 ? 'menaces restantes' : 'menace restante'}` : snapshot.phase === 'lobby' ? host ? 'Échap pour lancer la nuit' : 'En attente de l’hôte' : snapshot.phase === 'extraction' ? `${Math.ceil(snapshot.timeLeft)} s · L’hélicoptère vient vous chercher` : snapshot.phase === 'victory' ? 'Les survivants ont quitté Deadwood' : snapshot.phase === 'gameover' ? 'La nuit est terminée' : `${Math.ceil(snapshot.timeLeft)} s · ${snapshot.phase === 'intermission' ? 'Ravitaillement effectué' : 'Prépare-toi'}`));
+  if (isLastNight()) {
+    writeText($('phase-label'), () => t(paused ? 'solo.paused' : 'solo.lastNight'));
+    if (snapshot.phase === 'wave') writeText($('wave-details'), () => t('solo.waveClock', { seconds: Math.ceil(snapshot.waveTimeLeft), remaining: snapshot.remaining }));
+    else if (snapshot.phase === 'intermission') writeText($('wave-details'), () => t('solo.resupply', { seconds: Math.ceil(snapshot.timeLeft) }));
+  }
   refreshRaidResult();
   const melee = meleeProfile(self.weapon);
   writeText($('combat-tip'), melee?()=>t('melee.tip',{light:melee.light.range,heavy:melee.heavy.range,targets:melee.maxTargets+reinforcedMeleeTargets(Math.max(0, effectiveBonusLevel(self, 'stone')))}): self.weapon === 'sniper' ? () => t('sniper.scope') : self.weapon === 'flamethrower' ? () => t('combat.flame', { seconds: FLAMETHROWER.burnDuration }) : self.weapon === 'rocket' ? () => t('combat.rocket', { radius: ROCKET.radiusDamage }) : `TÊTE ×${Number(snapshot.headshotMultiplier ?? 2.2).toFixed(1)} · ALIGNE LES ZOMBIES POUR LES TRAVERSER`);
@@ -2324,7 +2332,7 @@ function refreshState(oldSelf) {
   if (self.alive && self.downed && reviver && self.reviveLeft > 0) writeText($('downed').lastElementChild, () => t('downed.beingRevived', { name: reviver.name, seconds: Math.ceil(self.reviveLeft) }));
   else if (self.alive && self.downed && self.revivedBy === myId && self.reviveLeft > 0) writeText($('downed').lastElementChild, () => t('downed.selfReviving', { seconds: Math.ceil(self.reviveLeft) }));
   else if (self.alive && self.downed && self.reviveKit === true) writeText($('downed').lastElementChild, () => t('downed.kitHint', { key: controllerPlaying ? 'RB' : 'F', seconds: Math.ceil(self.bleedOutLeft) }));
-  else writeText($('downed').lastElementChild, self.alive ? `${self.outside ? 'Un coéquipier peut te relever en maintenant E, même dehors. Rentre après la réanimation.' : 'Un coéquipier peut te relever en maintenant E (5 s).'} ${Math.ceil(self.bleedOutLeft)} s avant l’élimination.` : 'Tu reviendras à la prochaine vague si l’équipe tient.');
+  else writeText($('downed').lastElementChild, () => t(self.alive ? 'downed.help' : 'downed.return'));
   if (self.weapon !== gunType || selectedWeaponId(self) !== gunId) equip(self.weapon, selectedWeaponId(self));
   for (const door of snapshot.doors) world.setDoor(door.id, door.hp / door.maxHp, door.boards, door.sealed);
   const defendedDoors = snapshot.doors.filter(door => !door.sealed && !door.sealPending);
@@ -2343,10 +2351,11 @@ function refreshState(oldSelf) {
     writeText($('results-wait'), 'L’hôte peut lancer une nouvelle nuit. Tu peux aussi quitter le refuge.');
     $('gameover').classList.toggle('victory', snapshot.phase === 'victory');
     writeText($('gameover-eyebrow'), snapshot.phase === 'victory' ? 'LE JOUR S’EST LEVÉ' : 'LA LUMIÈRE S’EST ÉTEINTE');
-    writeText($('gameover-title'), snapshot.phase === 'victory' ? 'Vous êtes rentrés.' : 'Jusqu’au dernier.');
+    writeText($('gameover-title'), () => t(isLastNight() ? snapshot.phase === 'victory' ? 'solo.dawn' : 'solo.defeat' : snapshot.phase === 'victory' ? 'solo.classicWin' : 'results.title'));
     const kills = snapshot.players.reduce((sum, player) => sum + player.kills, 0);
     const score = snapshot.players.reduce((sum, player) => sum + player.score, 0);
     writeText($('gameover-result'), snapshot.phase === 'victory' ? `${maxWaves} vagues traversées. L’hélicoptère vous a ramenés à l’abri. ${kills} éliminations · score d’équipe ${score}.` : `Votre équipe a atteint la vague ${snapshot.wave}/${maxWaves}. La forêt se souviendra de vous.`);
+    writeText($('gameover-result'), () => t(snapshot.phase === 'victory' ? 'solo.winSummary' : 'solo.lossSummary', { mode: t(isLastNight() ? 'solo.lastNightName' : 'solo.classicName'), wave: snapshot.wave, total: maxWaves, kills, score }));
     if (hostChanged && !host) { restartRequested = false; $('restart-button').disabled = false; }
   }
   if (phaseChanged) {
@@ -3435,6 +3444,22 @@ $('level-picker').hidden = !mapContext.enabled || joinMode;
 refreshMapLabels();
 $('create-tab').onclick = () => setJoinMode(false);
 $('join-tab').onclick = () => { setJoinMode(true); $('room-code').focus(); };
+for (const mode of ['classic', 'last-night']) {
+  $(`mode-${mode}`)?.addEventListener('click', () => {
+    selectedSoloMode = mode;
+    const intro = document.querySelector('[data-i18n="intro.description.first"], [data-i18n="solo.lastNightIntro"]');
+    if (intro) {
+      const key = mode === 'last-night' ? 'solo.lastNightIntro' : 'intro.description.first';
+      intro.setAttribute('data-i18n', key); intro.textContent = t(key);
+    }
+    const waveCount = document.querySelectorAll('.feature-strip b')[1];
+    if (waveCount) waveCount.textContent = mode === 'last-night' ? '10' : '20';
+    for (const choice of ['classic', 'last-night']) {
+      $(`mode-${choice}`).classList.toggle('selected', choice === mode);
+      $(`mode-${choice}`).setAttribute('aria-pressed', String(choice === mode));
+    }
+  });
+}
 $('connect-button').onclick = connect;
 $('practice-button').onclick = () => connect({ practice: true });
 // Famille, Frisson léger, Frisson: either Frisson only on a PC not locked to Famille.

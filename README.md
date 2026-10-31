@@ -6,6 +6,24 @@ Published by Nilo. Created with Codex, Claude and Kimi.
 
 This is an independent browser adaptation of [Deadwood - Last Light](https://github.com/cedricbernadac/deadwood-open), based on upstream commit `35ee1efed1bb448f9e2b6d66f7a6915e0e16bf90`. The upstream game and its hosted multiplayer service remain independent.
 
+## Last Night — independent LOB7 Enhancement variant
+
+Choose **Last Night** in the setup panel for a short survival challenge: ten
+25-second waves, five-second resupplies and extraction at dawn (about five minutes).
+Remaining enemies scatter at each timed wave end without granting kills or money.
+Health and ammunition refill between waves. The usual weapons, movement and combat
+remain; the short mode has no raider attacks, fuel expeditions or final colossus.
+
+Pause whenever you need. Last Night has no mid-run saves; this is stated in the
+pause menu. Replay keeps the same mode; leave to the home screen to choose another.
+**Classic** retains the original twenty waves and its existing saves, and the
+practice range remains available. English and French labels describe the mode,
+countdown and ending.
+
+Automatically produced by LOB7 Enhancement. Kimi K3 implemented the bounded mode
+rules and initial simulation hooks; Nilo reviewed and integrated the interface,
+transport, tests and publication. Original code, media licences and credits remain.
+
 ## Scope and implementation plan
 
 1. Reuse the original cabin, rendering, weapons, enemies and twenty-wave rules.

@@ -33,7 +33,7 @@ test('the export root carries the LOB7 manifest with exact keys and solo English
   const manifest = JSON.parse(await readFile(join(dist, 'LOB7-GAME.json'), 'utf8'));
   assert.deepEqual(Object.keys(manifest).sort(),
     ['assetsLicense', 'controls', 'credits', 'description', 'entrypoint', 'genre', 'license', 'themes', 'title']);
-  assert.equal(manifest.title, 'Deadwood Solo Open');
+  assert.equal(manifest.title, 'Deadwood Solo Open - Last Night');
   assert.equal(manifest.entrypoint, 'index.html');
   assert.equal(manifest.license, 'MIT');
   assert.deepEqual(manifest.genre, ['Survival', 'FPS']);
