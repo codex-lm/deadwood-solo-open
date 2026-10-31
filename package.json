@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node scripts/serve-solo.mjs",
     "build": "node scripts/build-solo.mjs",
-    "test:solo": "node --test test/solo-transport.test.mjs test/solo-build.test.mjs test/save-game.test.mjs test/save-sheets.test.mjs",
+    "test:solo": "node --test test/solo-transport.test.mjs test/solo-build.test.mjs test/save-game.test.mjs test/save-sheets.test.mjs test/last-night.test.mjs test/last-night-rules.test.mjs",
     "start:original": "node server.mjs",
     "start:lan": "node lan-gateway.mjs",
     "start:supermarket": "node start-supermarket.mjs",

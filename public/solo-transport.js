@@ -1,4 +1,5 @@
 import { RoomSimulation, TICK_RATE } from '../simulation.mjs';
+import { LastNightSimulation, LAST_NIGHT_MODE } from './last-night.js';
 import { receiveSaveUpload, parseSaveText } from '../save-transfer.mjs';
 import { LEVEL_ID } from './level-id.js';
 
@@ -90,7 +91,8 @@ export class SoloSocket extends EventTarget {
       return;
     }
     this.build ??= typeof message.build === 'string' ? message.build : 'solo-open-v1';
-    this.simulation = new RoomSimulation(this.roomCode, { practice: message.practice === true,
+    const Simulation = message.mode === LAST_NIGHT_MODE && message.practice !== true ? LastNightSimulation : RoomSimulation;
+    this.simulation = new Simulation(this.roomCode, { practice: message.practice === true,
       ambiance: message.ambiance, random: this._random,
       onEvent: event => { if (this._joined) this._packet(event); } });
     this.simulation.companionsAvailable = false;

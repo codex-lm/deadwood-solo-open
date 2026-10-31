@@ -4,11 +4,12 @@
 // the LOB7 manifest) that any static file server can publish. No network or
 // GitHub calls; everything resolves from this repository and node_modules.
 import * as esbuild from 'esbuild';
+import { realpathSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { access, copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 export const UPSTREAM_URL = 'https://github.com/cedricbernadac/deadwood-open';
 export const UPSTREAM_COMMIT = '35ee1efed1bb448f9e2b6d66f7a6915e0e16bf90';
@@ -31,13 +32,13 @@ const VENDOR_MODULES = new Map([
 ]);
 
 export const SOLO_MANIFEST = {
-  title: 'Deadwood Solo Open',
-  description: 'A single-player 3D survival FPS executed entirely in your browser. Defend a forest cabin, survive twenty waves and reach extraction. Published by Nilo. Created with Codex, Claude and Kimi.',
+  title: 'Deadwood Solo Open - Last Night',
+  description: 'Survive ten timed solo waves in your browser with Last Night, a five-minute stand until dawn. Enemies scatter between waves, with health and ammunition refilled; the original twenty-wave campaign and practice remain available. Automatically produced by LOB7 Enhancement.',
   entrypoint: 'index.html',
   license: 'MIT',
   genre: ['Survival', 'FPS'],
   themes: ['Forest'],
-  controls: ['Keyboard and mouse or an Xbox-compatible gamepad.', 'WASD/ZQSD or arrows: move; mouse: look; left click: fire.', 'Shift: run; C: crouch; Space: jump; R: reload.', '1–4 or wheel: weapons; E: interact; V: drop weapon.', 'G: grenade; B: umbrella; N: next wave.', 'Esc or P: pause; resume and save from the menu.'],
+  controls: ['Keyboard and mouse or an Xbox-compatible gamepad.', 'WASD/ZQSD or arrows: move; mouse: look; left click: fire.', 'Shift: run; C: crouch; Space: jump; R: reload.', '1–4 or wheel: weapons; E: interact; V: drop weapon.', 'G: grenade; B: umbrella; N: next wave.', 'Choose Classic (20 waves) or Last Night (ten 25-second survival waves) before starting.', 'Esc or P: pause; Last Night has no mid-run saves. Classic saves remain available.'],
   credits: ['Published by Nilo.', 'Created with Codex, Claude and Kimi.', `Based on Deadwood — Last Light (${UPSTREAM_URL}).`],
   assetsLicense: 'Media are licensed under CC BY 4.0. Original attribution and generation sources are preserved in ASSETS-LICENSE.md. Some sounds from the hosted upstream game are excluded and use synthesised fallbacks.',
 };
@@ -202,6 +203,7 @@ export async function buildSolo(directory = resolve(dirname(fileURLToPath(import
     target: 'es2022',
     platform: 'browser',
     treeShaking: true,
+    tsconfigRaw: {},
     plugins: [vendorPlugin(root)],
     logLevel: 'silent',
   });
@@ -212,10 +214,12 @@ export async function buildSolo(directory = resolve(dirname(fileURLToPath(import
   await writeFile(join(outDir, 'index.html'), deriveSoloHtml(await readFile(join(publicDirectory, 'index.html'), 'utf8')));
   await writeFile(join(outDir, 'favicon.svg'), FAVICON_SVG);
   await writeFile(join(outDir, 'LOB7-GAME.json'), JSON.stringify(SOLO_MANIFEST, null, 2) + '\n');
+  try { await copyFile(join(root, 'LOB7-ATTRIBUTION.json'), join(outDir, 'LOB7-ATTRIBUTION.json')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
   await copyFile(join(root, 'LICENSE'), join(outDir, 'LICENSE'));
   await writeFile(join(outDir, 'ASSETS-LICENSE.md'), await readFile(join(root, 'ASSETS.md'), 'utf8'));
   await writeFile(join(outDir, 'NOTICE.md'), noticeText(upstreamCommit(root)) + '\n## Three.js MIT licence\n\n' + await readFile(join(root, 'node_modules/three/LICENSE'), 'utf8'));
-  await writeFile(join(outDir, 'README.md'), `# Deadwood Solo Open\n\nPublished by Nilo. Created with Codex, Claude and Kimi.\n\n[Play on LOB7](https://lob7.com/games/bg_s_07513039-c17e-4900-afac-bb2509cac6c4).\n\nThis branch is a self-contained static edition: one survivor, the cabin and twenty waves. The game simulation runs entirely in your browser. Serve this directory with any static web server and open index.html. No gameplay backend or API key is needed.\n\nBuild tooling, original modules, tests and the implementation plan are on the [development branch](https://github.com/codex-lm/deadwood-solo-open/tree/codex/solo-browser).\n\nCode is MIT; media are CC BY 4.0. See LICENSE, ASSETS-LICENSE.md and NOTICE.md for the preserved upstream attribution and dependency notices.\n`);
+  await writeFile(join(outDir, 'README.md'), `# Deadwood Solo Open\n\nPublished by Nilo. Created with Codex, Claude and Kimi.\n\n[Play on LOB7](https://lob7.com/games/bg_s_07513039-c17e-4900-afac-bb2509cac6c4).\n\nThis branch is a self-contained static edition: one survivor and the cabin, with the original twenty-wave campaign plus Last Night: ten timed waves, about five minutes. Choose the mode before preparing your night. Last Night allows pausing but has no mid-run saves. The game simulation runs entirely in your browser. Serve this directory with any static web server and open index.html. No gameplay backend or API key is needed.\n\nBuild tooling, original modules, tests and the implementation plan are on the [development branch](https://github.com/codex-lm/deadwood-solo-open/tree/${upstreamCommit(root)}).\n\nCode is MIT; media are CC BY 4.0. See LICENSE, ASSETS-LICENSE.md and NOTICE.md for the preserved upstream attribution and dependency notices.\n`);
 
   const files = await exportContents(outDir);
   assertCleanExport(files, outDir);
@@ -232,7 +236,7 @@ export async function buildSolo(directory = resolve(dirname(fileURLToPath(import
   return { directory: outDir, files: files.length, expandedBytes, archiveBytes };
 }
 
-if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   buildSolo().then(({ files, expandedBytes, archiveBytes }) => {
     const mib = bytes => (bytes / 1024 ** 2).toFixed(1);
     console.log(`${OUTPUT_DIRECTORY}: ${files} files, ${mib(expandedBytes)} MiB expanded, ~${mib(archiveBytes)} MiB archive estimate.`);
