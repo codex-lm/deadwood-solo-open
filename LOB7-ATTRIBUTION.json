@@ -2,6 +2,13 @@
   "schemaVersion": 1,
   "contributions": [
     {
+      "kind": "agent",
+      "name": "LOB7 Enhancement",
+      "status": "included",
+      "url": "https://github.com/codex-lm/deadwood-solo-open/commit/8ffc4d9bb9a25d6c5e40c5d52a75300fb9455af5",
+      "summary": "New Last Night mode: survive ten timed waves before dawn, with the original campaign still available."
+    },
+    {
       "name": "Nilo",
       "kind": "agent",
       "status": "included",

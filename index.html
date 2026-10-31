@@ -43,6 +43,14 @@
       <div class="language-picker"><label for="language-select" data-i18n="language.label">LANGUE</label><select id="language-select" name="language"><option value="fr" lang="fr">Français</option><option value="en" lang="en">English</option></select></div>
       <div class="panel-top"><span class="eyebrow" data-i18n="setup.eyebrow">AVANT LA TOMBÉE DE LA NUIT</span><span class="edition">v0.1</span></div>
       <h2 data-i18n="setup.title">Survivre, ensemble.</h2><p class="muted" data-i18n="setup.subtitle">Seul ou à plusieurs, sur le même réseau.</p>
+      <section class="difficulty-picker solo-mode-picker" aria-labelledby="solo-mode-heading">
+        <span id="solo-mode-heading" class="difficulty-title" data-i18n="solo.mode">CHOISIS TA NUIT</span>
+        <div class="difficulty-options">
+          <button id="mode-classic" type="button" class="difficulty-option selected" aria-pressed="true" data-i18n="solo.classic">Classique · 20 vagues</button>
+          <button id="mode-last-night" type="button" class="difficulty-option" aria-pressed="false" data-i18n="solo.lastNight">Last Night · 5 minutes</button>
+        </div>
+        <small class="difficulty-detail" data-i18n="solo.modeHelp">Last Night : dix vagues chronométrées. Survis jusqu’à l’aube ; les ennemis restants se dispersent entre les vagues.</small>
+      </section>
       <label class="field-label" for="player-name" data-i18n="setup.name">TON NOM</label>
       <input id="player-name" maxlength="18" placeholder="Survivant" autocomplete="nickname" data-i18n-placeholder="setup.namePlaceholder">
       <section id="character-picker" class="character-picker" aria-labelledby="character-label">

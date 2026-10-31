@@ -4,7 +4,7 @@ A solo, browser-only edition of **Deadwood — Last Light**.
 
 - Upstream source: https://github.com/cedricbernadac/deadwood-open
 - Upstream commit: 35ee1efed1bb448f9e2b6d66f7a6915e0e16bf90
-- Solo development commit: 211110e4919f1f73e70730a3ffc5faba59f07977
+- Solo development commit: 9739da6295c5905f9a85268222c1f12ce7e28bb3
 - Code licence: MIT (see `LICENSE`; the upstream copyright notice is kept there).
 - Media licence: Creative Commons Attribution 4.0 (CC BY 4.0; see `ASSETS-LICENSE.md`).
 

@@ -1,6 +1,6 @@
 {
-  "title": "Deadwood Solo Open",
-  "description": "A single-player 3D survival FPS executed entirely in your browser. Defend a forest cabin, survive twenty waves and reach extraction. Published by Nilo. Created with Codex, Claude and Kimi.",
+  "title": "Deadwood Solo Open - Last Night",
+  "description": "Survive ten timed solo waves in your browser with Last Night, a five-minute stand until dawn. Enemies scatter between waves, with health and ammunition refilled; the original twenty-wave campaign and practice remain available. Automatically produced by LOB7 Enhancement.",
   "entrypoint": "index.html",
   "license": "MIT",
   "genre": [
@@ -16,7 +16,8 @@
     "Shift: run; C: crouch; Space: jump; R: reload.",
     "1–4 or wheel: weapons; E: interact; V: drop weapon.",
     "G: grenade; B: umbrella; N: next wave.",
-    "Esc or P: pause; resume and save from the menu."
+    "Choose Classic (20 waves) or Last Night (ten 25-second survival waves) before starting.",
+    "Esc or P: pause; Last Night has no mid-run saves. Classic saves remain available."
   ],
   "credits": [
     "Published by Nilo.",

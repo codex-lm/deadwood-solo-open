@@ -611,3 +611,7 @@ body:has(#survivor-sheet:not([hidden])) #breach-alert{top:14px;max-width:130px;w
   letter-spacing: .08em;
   text-transform: none;
 }
+
+/* The short solo mode needs two readable choices, not the five difficulty slots. */
+.solo-mode-picker .difficulty-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.solo-mode-picker .difficulty-option { min-height: 44px; }

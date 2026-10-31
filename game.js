@@ -1026,6 +1026,24 @@ var init_i18n = __esm({
       gameover: ["LA LUMI\xC8RE S\u2019EST \xC9TEINTE", "THE LIGHT WENT OUT"]
     };
     Object.assign(text, {
+      "solo.lastNightIntro": ["Une cabane. Dix vagues chronom\xE9tr\xE9es. Tiens jusqu\u2019\xE0 l\u2019aube.", "One cabin. Ten timed waves. Hold out until dawn."],
+      "solo.mode": ["CHOISIS TA NUIT", "CHOOSE YOUR NIGHT"],
+      "solo.classic": ["Classique \xB7 20 vagues", "Classic \xB7 20 waves"],
+      "solo.classicName": ["Classique", "Classic"],
+      "solo.lastNight": ["Last Night \xB7 5 minutes", "Last Night \xB7 5 minutes"],
+      "solo.lastNightName": ["Last Night", "Last Night"],
+      "solo.modeHelp": ["Last Night : dix vagues de 25 secondes. Survis jusqu\u2019\xE0 l\u2019aube ; les ennemis restants se dispersent entre les vagues. Sant\xE9 et munitions reviennent au ravitaillement.", "Last Night: ten 25-second waves. Survive until dawn; remaining enemies scatter between waves. Health and ammunition return at resupply."],
+      "solo.lastNightLobby": ["Last Night : dix vagues, environ cinq minutes. Choisis ta difficult\xE9. Pause possible ; pas de sauvegarde pendant ce d\xE9fi.", "Last Night: ten waves, about five minutes. Choose your difficulty. You can pause; this short challenge has no mid-run saves."],
+      "solo.noSave": ["Last Night se joue en une courte partie, sans sauvegarde. Tu peux faire une pause ; les sauvegardes restent disponibles en Classique.", "Last Night is one short run, without saves. You can pause; saves remain available in Classic."],
+      "save.reason.mode": ["Ce d\xE9fi court ne se sauvegarde pas. Choisis Classique pour sauvegarder une nuit.", "This short challenge cannot be saved. Choose Classic to save a night."],
+      "solo.paused": ["LAST NIGHT \xB7 EN PAUSE", "LAST NIGHT \xB7 PAUSED"],
+      "solo.waveClock": ["{seconds} s \xE0 tenir \xB7 {remaining} menaces", "{seconds} s to survive \xB7 {remaining} threats"],
+      "solo.resupply": ["La horde se disperse \xB7 ravitaillement \xB7 {seconds} s", "The horde scatters \xB7 resupply \xB7 {seconds} s"],
+      "solo.dawn": ["Last Night : l\u2019aube est l\xE0.", "Last Night: dawn has arrived."],
+      "solo.defeat": ["Last Night : la nuit l\u2019emporte.", "Last Night: the night wins."],
+      "solo.classicWin": ["Tu es \xE0 l\u2019abri.", "You made it home."],
+      "solo.winSummary": ["{mode} \xB7 {total} vagues travers\xE9es. {kills} \xE9liminations \xB7 score {score}.", "{mode} \xB7 All {total} waves survived. {kills} kills \xB7 score {score}."],
+      "solo.lossSummary": ["{mode} \xB7 Tu as atteint la vague {wave}/{total}. R\xE9essaie ou reviens au menu pour changer de mode.", "{mode} \xB7 You reached wave {wave}/{total}. Try again, or return to the menu to change modes."],
       "brand.home": ["Deadwood Solo Open accueil", "Deadwood Solo Open home"],
       "connection.idle": ["SOLO \xB7 DANS TON NAVIGATEUR", "SOLO \xB7 IN YOUR BROWSER"],
       "solo.connected": ["PARTIE SOLO \xB7 LOCALE", "SOLO GAME \xB7 LOCAL"],
@@ -71983,6 +72001,18 @@ var RoomSimulation = class {
     this.eventNumber = 0;
     if (this.practice) this.resetPracticeTargets();
   }
+  // Mode hooks a short solo edition overrides (public/last-night.js). They are
+  // prototype getters, never own fields: the classic room and its save file
+  // stay byte-for-byte identical.
+  get mode() {
+    return "classic";
+  }
+  get maxWaves() {
+    return MAX_WAVES;
+  }
+  get intermissionSeconds() {
+    return 12;
+  }
   createDoors() {
     return LEVEL.doors.map((source) => {
       const door = { ...source };
@@ -73458,7 +73488,7 @@ var RoomSimulation = class {
   }
   beginWave() {
     if (this.practice) return false;
-    if (this.wave >= MAX_WAVES || ["extraction", "victory", "gameover"].includes(this.phase)) return false;
+    if (this.wave >= this.maxWaves || ["extraction", "victory", "gameover"].includes(this.phase)) return false;
     this.wave++;
     this.phase = "wave";
     this.nextWaveCalled = false;
@@ -73487,10 +73517,10 @@ var RoomSimulation = class {
   }
   finishWave() {
     if (this.practice || this.spawnWarnings.size) return false;
-    if (this.wave >= MAX_WAVES) return this.beginExtraction();
+    if (this.wave >= this.maxWaves) return this.beginExtraction();
     this.payReviveCredits("wave");
     this.phase = "intermission";
-    this.timeLeft = 12;
+    this.timeLeft = this.intermissionSeconds;
     this.admitReadyPlayers();
     for (const player of this.players.values()) {
       if (player.waiting) continue;
@@ -73505,11 +73535,11 @@ var RoomSimulation = class {
       player.bleedOutAt = 0;
       player.outsideDamageAccumulator = 0;
     }
-    this.event("resupply", { wave: this.wave, seconds: 12 });
+    this.event("resupply", { wave: this.wave, seconds: this.intermissionSeconds });
   }
   beginExtraction() {
     if (this.practice) return false;
-    if (this.phase !== "wave" || this.wave < MAX_WAVES || this.toSpawn || this.spawnWarnings.size || this.zombies.size || !this.livingPlayers().length) return false;
+    if (this.phase !== "wave" || this.wave < this.maxWaves || this.toSpawn || this.spawnWarnings.size || this.zombies.size || !this.livingPlayers().length) return false;
     this.phase = "extraction";
     this.beginSupplyWave();
     if (this.supplyCrate) this.supplyCrate.active = false;
@@ -75810,7 +75840,7 @@ var RoomSimulation = class {
       pauseById: this.pauseById,
       ...this.seatSnapshot(),
       practiceTargets: this.practice ? this.zombieCount() : 0,
-      maxWaves: MAX_WAVES,
+      maxWaves: this.maxWaves,
       extractionDuration: EXTRACTION_DURATION,
       outsideDamagePerSecond: milli2(EXTERIOR.damagePerSecond * difficultyOf(this.difficulty).damageTaken),
       maxWeaponSlots: MAX_WEAPON_SLOTS,
@@ -75832,6 +75862,9 @@ var RoomSimulation = class {
       nextRaidWave: this.nextRaidWave(),
       time: round(this.time),
       timeLeft: round(this.timeLeft),
+      // A short mode announces itself and its wave clock; classic snapshots
+      // keep their exact shape.
+      ...this.mode === "classic" ? {} : { mode: this.mode, waveTimeLeft: round(this.waveTimeLeft ?? 0) },
       expedition: {
         enabled: !this.practice,
         generator: {
@@ -75993,6 +76026,122 @@ for (const name of ["claimSupply", "takeBonus", "buySupply"]) {
   };
 }
 
+// public/last-night.js
+init_rules();
+
+// public/last-night-rules.js
+var WAVE_TOTALS = Object.freeze([6, 8, 10, 12, 14, 16, 18, 20, 22, 24]);
+var MAX_DELTA_SECONDS = 0.25;
+var LAST_NIGHT = Object.freeze({
+  mode: "last-night",
+  waves: 10,
+  waveSeconds: 25,
+  intermissionSeconds: 5
+});
+function normalizeWave(wave) {
+  if (typeof wave !== "number" || !Number.isFinite(wave)) return 1;
+  const whole3 = Math.trunc(wave);
+  if (whole3 < 1) return 1;
+  if (whole3 > LAST_NIGHT.waves) return LAST_NIGHT.waves;
+  return whole3;
+}
+function lastNightBalance(wave, classicBalance) {
+  const w = normalizeWave(wave);
+  const total = WAVE_TOTALS[w - 1];
+  return {
+    ...classicBalance,
+    total,
+    maxActive: Math.min(total, 8 + w),
+    spawnInterval: Math.min(2, 20 / total),
+    brutes: w >= 7 ? 1 : 0,
+    bosses: 0
+  };
+}
+function advanceLastNightTimer(remaining, delta2, paused = false) {
+  if (paused) return remaining;
+  const base2 = Number.isFinite(remaining) ? remaining : LAST_NIGHT.waveSeconds;
+  const step = Number.isFinite(delta2) ? Math.min(Math.max(delta2, 0), MAX_DELTA_SECONDS) : 0;
+  return Math.max(0, base2 - step);
+}
+
+// public/last-night.js
+var LAST_NIGHT_MODE = "last-night";
+function lastNightBalance2(wave = 1, playerCount = 1) {
+  const level = Math.max(1, Math.min(LAST_NIGHT.waves, Math.floor(Number.isFinite(wave) ? wave : 1)));
+  const balance = lastNightBalance(level, waveBalance(level, playerCount));
+  return { ...balance, soloTotal: balance.total };
+}
+var LastNightSimulation = class extends RoomSimulation {
+  constructor(code, options = {}) {
+    super(code, { ...options, practice: false, raids: false });
+    this.waveTimeLeft = 0;
+  }
+  get mode() {
+    return LAST_NIGHT_MODE;
+  }
+  get maxWaves() {
+    return LAST_NIGHT.waves;
+  }
+  get intermissionSeconds() {
+    return LAST_NIGHT.intermissionSeconds;
+  }
+  currentWaveBalance() {
+    return lastNightBalance2(this.wave, this.wavePlayerCount ?? this.participantCount());
+  }
+  // The generator's fuel mission belongs to the long night.
+  beginExpeditionMission() {
+    return false;
+  }
+  // No Last Night save records ever exist; classic saves load into classic
+  // rooms, never onto this subclass.
+  saveDenial() {
+    return "mode";
+  }
+  importSave() {
+    return { ok: false, reason: "mode" };
+  }
+  start(id) {
+    const started = super.start(id);
+    if (started) this.waveTimeLeft = 0;
+    return started;
+  }
+  beginWave() {
+    const begun = super.beginWave();
+    if (begun) this.waveTimeLeft = LAST_NIGHT.waveSeconds;
+    return begun;
+  }
+  finishWave() {
+    if (this.waveTimeLeft > 0) return false;
+    return super.finishWave();
+  }
+  snapshot() {
+    const state = super.snapshot();
+    state.expedition.enabled = false;
+    return state;
+  }
+  // Timed wave end: the horde scatters as the sky pales. Remaining bodies and
+  // pending spawns are routed — removed, never killed nor paid — then the
+  // usual resupply (or dawn after the tenth wave) follows on the same tick.
+  routeWave() {
+    const routed = this.toSpawn + this.spawnWarnings.size + this.zombies.size;
+    this.toSpawn = 0;
+    this.brutesToSpawn = 0;
+    this.bruteSpawnAt = [];
+    this.spawnWarnings.clear();
+    this.zombies.clear();
+    if (routed > 0) this.event("wave-routed", { wave: this.wave, routed });
+  }
+  tick(delta2 = 1 / TICK_RATE) {
+    if (!Number.isFinite(delta2) || delta2 < 0 || ["victory", "gameover"].includes(this.phase)) return;
+    const step = Math.min(delta2, 0.1);
+    if (!this.paused && this.phase === "wave") {
+      this.waveTimeLeft = advanceLastNightTimer(this.waveTimeLeft, step);
+      if (this.waveTimeLeft <= 0) this.routeWave();
+    }
+    super.tick(step);
+  }
+};
+
 // save-transfer.mjs
 var SAVE_TRANSFER = Object.freeze({ maxChunks: 200, maxSize: 6e5, chunkChars: 3e3, idleMs: 6e4 });
 var fail = (reason) => ({ reply: { type: "load-result", ok: false, reason } });
@@ -76114,7 +76263,8 @@ var SoloSocket = class _SoloSocket extends EventTarget {
       return;
     }
     this.build ??= typeof message.build === "string" ? message.build : "solo-open-v1";
-    this.simulation = new RoomSimulation(this.roomCode, {
+    const Simulation = message.mode === LAST_NIGHT_MODE && message.practice !== true ? LastNightSimulation : RoomSimulation;
+    this.simulation = new Simulation(this.roomCode, {
       practice: message.practice === true,
       ambiance: message.ambiance,
       random: this._random,
@@ -81687,6 +81837,8 @@ var dualCycleSince = null;
 var dualCycleConsumed = false;
 var websocket = null;
 var myId = null;
+var selectedSoloMode = "classic";
+var isLastNight = () => snapshot?.mode === "last-night";
 var room = null;
 var snapshot = null;
 var inGame = false;
@@ -83743,9 +83895,10 @@ function refreshSaveControls() {
   if (snapshot && savePausedSeen && !paused && !saveRequested) $("save-game-status").hidden = true;
   if (snapshot) savePausedSeen = paused;
   $("save-game-button").hidden = !night;
-  $("save-game-button").disabled = !night || !paused || saveRequested;
-  $("save-game-hint").hidden = !night || paused;
-  if (night && !paused) writeText($("save-game-hint"), () => t(snapshot.hostId === myId ? "save.pauseFirstHost" : "save.pauseFirstGuest"));
+  $("save-game-button").disabled = !night || !paused || saveRequested || isLastNight();
+  $("save-game-hint").hidden = !night || paused && !isLastNight();
+  if (night && isLastNight()) writeText($("save-game-hint"), () => t("solo.noSave"));
+  if (night && !paused && !isLastNight()) writeText($("save-game-hint"), () => t(snapshot.hostId === myId ? "save.pauseFirstHost" : "save.pauseFirstGuest"));
 }
 function saveReason(code) {
   return t(`save.reason.${typeof code === "string" && t(`save.reason.${code}`) !== `save.reason.${code}` ? code : "error"}`);
@@ -83755,7 +83908,7 @@ function saveStatus(text3) {
   $("save-game-status").hidden = false;
 }
 function requestSave() {
-  if (!savableNight() || snapshot.paused !== true || saveRequested) return;
+  if (!savableNight() || snapshot.paused !== true || saveRequested || isLastNight()) return;
   saveRequested = true;
   saveStatus(() => t("save.saving"));
   refreshSaveControls();
@@ -84113,7 +84266,7 @@ function connect({ practice = false, load = null } = {}) {
   }, 8e3);
   const sheet = practice ? null : mapSheetDraft ?? characterPicker.joinSheet();
   mapSheetDraft = null;
-  socket.addEventListener("open", () => socket.send(JSON.stringify({ type: "join", room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...sheet ? { sheet } : {}, ...practice ? { practice: true } : {}, ...ambiance ? { ambiance } : {}, ...pageBuild ? { build: pageBuild } : {} })));
+  socket.addEventListener("open", () => socket.send(JSON.stringify({ type: "join", room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...!practice && !load && selectedSoloMode === "last-night" ? { mode: "last-night" } : {}, ...sheet ? { sheet } : {}, ...practice ? { practice: true } : {}, ...ambiance ? { ambiance } : {}, ...pageBuild ? { build: pageBuild } : {} })));
   socket.addEventListener("message", (event) => {
     if (socket !== websocket) return;
     let message;
@@ -84341,7 +84494,7 @@ function refreshState(oldSelf) {
     renderCompanions();
     renderCharacterChoice();
     refreshStartButton();
-    writeText($("lobby-note"), () => t(practice ? "practice.pauseDescription" : "lobby.note"));
+    writeText($("lobby-note"), () => t(practice ? "practice.pauseDescription" : isLastNight() ? "solo.lastNightLobby" : "lobby.note"));
   }
   writeText($("phase-label"), paused ? () => t("pause.stoppedLabel") : practice ? () => t("practice.title") : phaseNames[snapshot.phase] || "REFUGE");
   const maxWaves = snapshot.maxWaves ?? MAX_WAVES;
@@ -84349,6 +84502,11 @@ function refreshState(oldSelf) {
   writeText($("wave-number"), practice ? () => t("practice.invulnerable") : `${String(Math.min(maxWaves, Math.max(1, snapshot.wave))).padStart(2, "0")}/${maxWaves}`);
   const finalBoss = snapshot.zombies.some((zombie) => zombie.boss);
   writeText($("wave-details"), raidDetails(practice, practiceTargetCount) ?? (practice ? () => t("practice.details", { count: practiceTargetCount }) : snapshot.phase === "wave" ? `${finalBoss ? "COLOSSE FINAL \xB7 " : ""}${snapshot.remaining} ${snapshot.remaining > 1 ? "menaces restantes" : "menace restante"}` : snapshot.phase === "lobby" ? host ? "\xC9chap pour lancer la nuit" : "En attente de l\u2019h\xF4te" : snapshot.phase === "extraction" ? `${Math.ceil(snapshot.timeLeft)} s \xB7 L\u2019h\xE9licopt\xE8re vient vous chercher` : snapshot.phase === "victory" ? "Les survivants ont quitt\xE9 Deadwood" : snapshot.phase === "gameover" ? "La nuit est termin\xE9e" : `${Math.ceil(snapshot.timeLeft)} s \xB7 ${snapshot.phase === "intermission" ? "Ravitaillement effectu\xE9" : "Pr\xE9pare-toi"}`));
+  if (isLastNight()) {
+    writeText($("phase-label"), () => t(paused ? "solo.paused" : "solo.lastNight"));
+    if (snapshot.phase === "wave") writeText($("wave-details"), () => t("solo.waveClock", { seconds: Math.ceil(snapshot.waveTimeLeft), remaining: snapshot.remaining }));
+    else if (snapshot.phase === "intermission") writeText($("wave-details"), () => t("solo.resupply", { seconds: Math.ceil(snapshot.timeLeft) }));
+  }
   refreshRaidResult();
   const melee = meleeProfile(self2.weapon);
   writeText($("combat-tip"), melee ? () => t("melee.tip", { light: melee.light.range, heavy: melee.heavy.range, targets: melee.maxTargets + reinforcedMeleeTargets(Math.max(0, effectiveBonusLevel(self2, "stone"))) }) : self2.weapon === "sniper" ? () => t("sniper.scope") : self2.weapon === "flamethrower" ? () => t("combat.flame", { seconds: FLAMETHROWER.burnDuration }) : self2.weapon === "rocket" ? () => t("combat.rocket", { radius: ROCKET.radiusDamage }) : `T\xCATE \xD7${Number(snapshot.headshotMultiplier ?? 2.2).toFixed(1)} \xB7 ALIGNE LES ZOMBIES POUR LES TRAVERSER`);
@@ -84390,7 +84548,7 @@ function refreshState(oldSelf) {
   if (self2.alive && self2.downed && reviver && self2.reviveLeft > 0) writeText($("downed").lastElementChild, () => t("downed.beingRevived", { name: reviver.name, seconds: Math.ceil(self2.reviveLeft) }));
   else if (self2.alive && self2.downed && self2.revivedBy === myId && self2.reviveLeft > 0) writeText($("downed").lastElementChild, () => t("downed.selfReviving", { seconds: Math.ceil(self2.reviveLeft) }));
   else if (self2.alive && self2.downed && self2.reviveKit === true) writeText($("downed").lastElementChild, () => t("downed.kitHint", { key: controllerPlaying ? "RB" : "F", seconds: Math.ceil(self2.bleedOutLeft) }));
-  else writeText($("downed").lastElementChild, self2.alive ? `${self2.outside ? "Un co\xE9quipier peut te relever en maintenant E, m\xEAme dehors. Rentre apr\xE8s la r\xE9animation." : "Un co\xE9quipier peut te relever en maintenant E (5 s)."} ${Math.ceil(self2.bleedOutLeft)} s avant l\u2019\xE9limination.` : "Tu reviendras \xE0 la prochaine vague si l\u2019\xE9quipe tient.");
+  else writeText($("downed").lastElementChild, () => t(self2.alive ? "downed.help" : "downed.return"));
   if (self2.weapon !== gunType || selectedWeaponId(self2) !== gunId) equip(self2.weapon, selectedWeaponId(self2));
   for (const door of snapshot.doors) world.setDoor(door.id, door.hp / door.maxHp, door.boards, door.sealed);
   const defendedDoors = snapshot.doors.filter((door) => !door.sealed && !door.sealPending);
@@ -84416,10 +84574,11 @@ function refreshState(oldSelf) {
     writeText($("results-wait"), "L\u2019h\xF4te peut lancer une nouvelle nuit. Tu peux aussi quitter le refuge.");
     $("gameover").classList.toggle("victory", snapshot.phase === "victory");
     writeText($("gameover-eyebrow"), snapshot.phase === "victory" ? "LE JOUR S\u2019EST LEV\xC9" : "LA LUMI\xC8RE S\u2019EST \xC9TEINTE");
-    writeText($("gameover-title"), snapshot.phase === "victory" ? "Vous \xEAtes rentr\xE9s." : "Jusqu\u2019au dernier.");
+    writeText($("gameover-title"), () => t(isLastNight() ? snapshot.phase === "victory" ? "solo.dawn" : "solo.defeat" : snapshot.phase === "victory" ? "solo.classicWin" : "results.title"));
     const kills = snapshot.players.reduce((sum, player) => sum + player.kills, 0);
     const score = snapshot.players.reduce((sum, player) => sum + player.score, 0);
     writeText($("gameover-result"), snapshot.phase === "victory" ? `${maxWaves} vagues travers\xE9es. L\u2019h\xE9licopt\xE8re vous a ramen\xE9s \xE0 l\u2019abri. ${kills} \xE9liminations \xB7 score d\u2019\xE9quipe ${score}.` : `Votre \xE9quipe a atteint la vague ${snapshot.wave}/${maxWaves}. La for\xEAt se souviendra de vous.`);
+    writeText($("gameover-result"), () => t(snapshot.phase === "victory" ? "solo.winSummary" : "solo.lossSummary", { mode: t(isLastNight() ? "solo.lastNightName" : "solo.classicName"), wave: snapshot.wave, total: maxWaves, kills, score }));
     if (hostChanged && !host) {
       restartRequested = false;
       $("restart-button").disabled = false;
@@ -85898,6 +86057,23 @@ $("join-tab").onclick = () => {
   setJoinMode(true);
   $("room-code").focus();
 };
+for (const mode of ["classic", "last-night"]) {
+  $(`mode-${mode}`)?.addEventListener("click", () => {
+    selectedSoloMode = mode;
+    const intro = document.querySelector('[data-i18n="intro.description.first"], [data-i18n="solo.lastNightIntro"]');
+    if (intro) {
+      const key = mode === "last-night" ? "solo.lastNightIntro" : "intro.description.first";
+      intro.setAttribute("data-i18n", key);
+      intro.textContent = t(key);
+    }
+    const waveCount = document.querySelectorAll(".feature-strip b")[1];
+    if (waveCount) waveCount.textContent = mode === "last-night" ? "10" : "20";
+    for (const choice of ["classic", "last-night"]) {
+      $(`mode-${choice}`).classList.toggle("selected", choice === mode);
+      $(`mode-${choice}`).setAttribute("aria-pressed", String(choice === mode));
+    }
+  });
+}
 $("connect-button").onclick = connect;
 $("practice-button").onclick = () => connect({ practice: true });
 for (const id of AMBIANCES) $(`ambiance-${id}`).onclick = () => {
