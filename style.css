@@ -615,3 +615,24 @@ body:has(#survivor-sheet:not([hidden])) #breach-alert{top:14px;max-width:130px;w
 /* The short solo mode needs two readable choices, not the five difficulty slots. */
 .solo-mode-picker .difficulty-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
 .solo-mode-picker .difficulty-option { min-height: 44px; }
+.solo-mode-picker #mode-supply-siege { grid-column: 1 / -1; border-color: #80b9c8; }
+.siege-overlay { position: fixed; inset: 0; z-index: 90; overflow: auto; padding: clamp(16px,3vw,40px); background: #081a25e8; color: #ecf1ee; display: grid; place-items: center; }
+.siege-overlay[hidden] { display: none; }
+.siege-desk { width: min(880px,100%); padding: clamp(20px,3vw,36px); border: 1px solid #6393a6; border-radius: 16px; background: linear-gradient(145deg,#163848,#10232e); box-shadow: 0 22px 70px #0007; }
+.siege-top,.siege-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.siege-top .eyebrow { color:#97dce6; }.siege-frozen { color:#b5c9cc; font-size:12px; }
+.siege-desk h2 { font-size: clamp(30px,4vw,46px); margin:12px 0; color:#f1d39c; }
+.siege-desk p { line-height:1.5; }.siege-carry,.siege-help { font-size:13px; color:#bfd1d5; }
+.siege-route { display:flex; gap:8px; list-style:none; padding:0; margin:20px 0; }
+.siege-route li { flex:1; padding:10px; border:1px solid #466779; text-align:center; color:#a9bdc4; }
+.siege-route .done { background:#345a58; color:#b9e6d8; }.siege-route .next { background:#f1d39c; color:#142a36; font-weight:700; }
+.siege-ledger { padding:14px 16px; border-left:3px solid #91d8df; background:#0a202c; font-size:17px; font-weight:600; }
+.siege-purchases { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:16px 0 22px; }
+.siege-purchases button { display:grid; text-align:left; gap:8px; align-content:start; padding:14px; border:1px solid #6094a9; background:#234758; color:#f5f1de; border-radius:9px; }
+.siege-purchases button:disabled { opacity:.58; cursor:default; }.siege-purchases button:focus-visible,.siege-actions button:focus-visible,.siege-orders input:focus-visible { outline:3px solid #ffdc8b; outline-offset:3px; }
+.siege-cost { font-size:24px; color:#ffda95; }.siege-purchases small { font-size:12px; line-height:1.4; min-height:3em; }.siege-purchases em { font-size:11px; font-style:normal; color:#c6e2e4; }
+.siege-orders { border:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.siege-orders legend { padding:0 0 10px; color:#f1d39c; }.siege-orders label { display:flex; align-items:flex-start; gap:12px; background:#0c2633; border:1px solid #527788; border-radius:8px; padding:14px; cursor:pointer; }
+.siege-orders label:has(:checked) { border-color:#f1d39c; box-shadow:inset 0 0 0 1px #f1d39c; }.siege-orders input { width:18px; height:18px; flex:none; accent-color:#edc477; margin-top:2px; }.siege-orders small { display:block; margin-top:5px; line-height:1.4; color:#c0d4dc; }
+.siege-forecast { color:#f3dba9; min-height:1.5em; }.siege-actions .primary { width:auto; min-width:220px; }.siege-help { margin-bottom:0; }
+@media(max-width:650px) { .siege-purchases { grid-template-columns:1fr 1fr; }.siege-orders { grid-template-columns:1fr; }.siege-actions { flex-wrap:wrap; }.siege-actions .primary { width:100%; }.siege-top { align-items:flex-start; }.siege-frozen { max-width:45%; text-align:right; } }

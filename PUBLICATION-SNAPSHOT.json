@@ -1,0 +1,10 @@
+{
+  "sourceRepository": "https://github.com/codex-lm/deadwood-solo-open",
+  "sourceCommit": "6ca56942f464098d00706615b7790ab7aedb36c9",
+  "sourceBranch": "lob7-enhancement/supply-siege-20261104",
+  "parentReleaseId": "br_s_4601945f-b008-44e6-b1d8-245509fc85b2",
+  "parentCommit": "63a9dd08bba1f7cddf1c17cb38f01dde44a4722f",
+  "bundleSha256": "aad741835a43c8b524c37e6edbd3b82b64ecb576b65b4f787e164397ff6a7e83",
+  "build": "npm ci; npm run build",
+  "generatedBy": "LOB7 Enhancement, with Kimi K3 implementation and Nilo review"
+}

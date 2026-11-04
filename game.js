@@ -89,6 +89,42 @@ var init_i18n = __esm({
     } catch {
     }
     text = {
+      "siege.win": ["Supply Siege : cabane sauv\xE9e.", "Supply Siege: shelter secured."],
+      "siege.loss": ["Supply Siege : d\xE9fense submerg\xE9e.", "Supply Siege: defences overrun."],
+      "siege.title": ["Supply Siege", "Supply Siege"],
+      "siege.intro": ["Une cabane. Six assauts. Des r\xE9serves \xE0 partager entre tes blessures, tes armes et tes d\xE9fenses.", "One cabin. Six assaults. Split scarce supplies between your wounds, weapons and defences."],
+      "siege.modeHelp": ["Supply Siege : six assauts et des choix de ravitaillement. Classique, Last Night et entra\xEEnement restent disponibles.", "Supply Siege: six assaults with supply decisions. Classic, Last Night and practice remain available."],
+      "siege.lobby": ["Six assauts. Sant\xE9 et munitions persistent. Entre les vagues, d\xE9pense tes r\xE9serves ou risque un convoi pour en gagner davantage. Aucun chronom\xE8tre pendant les choix.", "Six assaults. Health and ammunition carry over. Between waves, spend supplies or risk a convoy for more. Take all the time you need to plan."],
+      "siege.eyebrow": ["POSTE DE D\xC9FENSE / 06 ASSAUTS", "DEFENCE DESK / 06 ASSAULTS"],
+      "siege.frozen": ["PLANIFICATION \xB7 TEMPS ARR\xCAT\xC9", "PLANNING \xB7 TIME FROZEN"],
+      "siege.brief": ["Tiens six assauts, puis attends l\u2019h\xE9licopt\xE8re. Chaque r\xE9serve d\xE9pens\xE9e ici peut manquer au prochain assaut.", "Hold through six assaults, then wait for the helicopter. Every supply spent here may be needed in the next assault."],
+      "siege.carry": ["Pas de soin ni de recharge automatique entre les assauts. Un achat par cat\xE9gorie et par pause. Les r\xE9serves non d\xE9pens\xE9es sont conserv\xE9es.", "No automatic healing or ammo refill between assaults. One purchase per category per break. Unspent supplies carry over."],
+      "siege.ledger": ["{supplies} r\xE9serves \xB7 {hp} PV \xB7 {ammo} munitions en r\xE9serve", "{supplies} supplies \xB7 {hp} HP \xB7 {ammo} reserve rounds"],
+      "siege.ammo": ["Munitions", "Ammunition"],
+      "siege.ammoHelp": ["Remplit chargeurs et r\xE9serves des armes port\xE9es.", "Refill magazines and reserves of carried weapons."],
+      "siege.medicine": ["Trousse de soins", "Medical kit"],
+      "siege.medicineHelp": ["R\xE9cup\xE8re 45 PV, sans d\xE9passer ton maximum.", "Restore 45 HP, up to your maximum."],
+      "siege.barricades": ["Barricades", "Barricades"],
+      "siege.barricadesHelp": ["R\xE9pare enti\xE8rement toutes les portes d\xE9fendues.", "Fully repair all defended doors."],
+      "siege.shotgun": ["Kit fusil \xE0 pompe", "Shotgun kit"],
+      "siege.shotgunHelp": ["D\xE8s l\u2019assaut 2. Arme et munitions ; un emplacement libre requis.", "From assault 2. Weapon and ammo; one free slot required."],
+      "siege.bought": ["Achet\xE9 pour cet assaut", "Bought this break"],
+      "siege.tooCostly": ["R\xE9serves insuffisantes", "Not enough supplies"],
+      "siege.notNeeded": ["D\xE9j\xE0 pr\xEAt ou indisponible", "Already ready or unavailable"],
+      "siege.buy": ["D\xE9penser les r\xE9serves", "Spend supplies"],
+      "siege.orders": ["Choisis ton prochain assaut", "Choose your next assault"],
+      "siege.quiet": ["Garder le silence", "Stay quiet"],
+      "siege.quietHelp": ["30 secondes. +2 r\xE9serves si tu tiens.", "30 seconds. +2 supplies if you survive."],
+      "siege.convoy": ["Signaler un convoi", "Signal a convoy"],
+      "siege.convoyHelp": ["45 secondes, 4 ennemis de plus. +5 r\xE9serves si tu tiens.", "45 seconds, 4 more enemies. +5 supplies if you survive."],
+      "siege.forecast": ["{seconds} s \xB7 {threats} ennemis \xB7 +{reward} r\xE9serves au prochain arr\xEAt", "{seconds} s \xB7 {threats} enemies \xB7 +{reward} supplies at the next break"],
+      "siege.finalForecast": ["Dernier assaut : {seconds} s \xB7 {threats} ennemis. Ensuite, \xE9vacuation ; plus de livraison.", "Final assault: {seconds} s \xB7 {threats} enemies. Then extraction; no further delivery."],
+      "siege.leave": ["Quitter la partie", "Leave game"],
+      "siege.launch": ["D\xE9fendre la cabane \u2192", "Defend the cabin \u2192"],
+      "siege.help": ["Choix : souris ou Tab + Entr\xE9e. Combat : commandes habituelles. Pause : P. Pas de sauvegarde pendant ce d\xE9fi.", "Plan with mouse or Tab + Enter. Combat uses the usual controls. P pauses. This challenge has no mid-run saves."],
+      "siege.noSave": ["Supply Siege est un d\xE9fi sans sauvegarde. La planification et la pause arr\xEAtent le temps.", "Supply Siege is one run without saves. Planning and pause freeze time."],
+      "siege.waveClock": ["{seconds} s \xE0 tenir \xB7 {supplies} r\xE9serves", "{seconds} s to hold \xB7 {supplies} supplies"],
+      "siege.ready": ["Reprends ton poste \xB7 {supplies} r\xE9serves", "Take your position \xB7 {supplies} supplies"],
       "dual.toggle": ["X \xB7 DEUX ARMES", "X \xB7 DUAL WIELD"],
       "dual.single": ["X \xB7 UNE ARME", "X \xB7 SINGLE WEAPON"],
       "dual.secondary": ["Arme secondaire", "Secondary weapon"],
@@ -68756,6 +68792,180 @@ function installSoloUi() {
   translateDom();
 }
 
+// public/supply-siege-ui.js
+init_i18n();
+
+// public/supply-siege-rules.js
+var SIEGE = Object.freeze({
+  mode: "supply-siege",
+  waves: 6,
+  startingSupplies: 4,
+  waveSeconds: 30,
+  convoySeconds: 45,
+  quietReward: 2,
+  convoyReward: 5
+});
+var SIEGE_COSTS = Object.freeze({
+  ammo: 1,
+  medicine: 2,
+  barricades: 2,
+  shotgun: 3
+});
+var WAVE_TOTALS = Object.freeze([8, 10, 12, 14, 16, 20]);
+var CONVOY_BONUS_TOTAL = 4;
+var hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+function newSiegeLedger() {
+  return { supplies: SIEGE.startingSupplies, purchased: [], convoys: 0 };
+}
+function isValidLedger(ledger) {
+  if (ledger === null || typeof ledger !== "object" || Array.isArray(ledger)) return false;
+  const { supplies, purchased, convoys } = ledger;
+  if (!Number.isInteger(supplies) || supplies < 0) return false;
+  if (!Array.isArray(purchased)) return false;
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry2 of purchased) {
+    if (typeof entry2 !== "string" || !hasOwn(SIEGE_COSTS, entry2)) return false;
+    if (seen.has(entry2)) return false;
+    seen.add(entry2);
+  }
+  if (!Number.isInteger(convoys) || convoys < 0 || convoys > SIEGE.waves) return false;
+  return true;
+}
+function purchaseSiegeItem(ledger, item) {
+  if (!isValidLedger(ledger)) return null;
+  if (typeof item !== "string" || !hasOwn(SIEGE_COSTS, item)) return null;
+  if (ledger.purchased.includes(item)) return null;
+  const cost = SIEGE_COSTS[item];
+  if (ledger.supplies < cost) return null;
+  return {
+    supplies: ledger.supplies - cost,
+    purchased: [...ledger.purchased, item],
+    convoys: ledger.convoys
+  };
+}
+function finishSiegeAssault(ledger, convoy = false) {
+  if (!isValidLedger(ledger)) return null;
+  const signaled = convoy === true;
+  return {
+    supplies: ledger.supplies + (signaled ? SIEGE.convoyReward : SIEGE.quietReward),
+    purchased: [],
+    convoys: signaled ? Math.min(ledger.convoys + 1, SIEGE.waves) : ledger.convoys
+  };
+}
+function siegeWaveProfile(wave, convoy, classicBalance) {
+  const normalized = Number.isInteger(wave) && wave >= 1 && wave <= SIEGE.waves ? wave : 1;
+  const signaled = convoy === true;
+  const total = WAVE_TOTALS[normalized - 1] + (signaled ? CONVOY_BONUS_TOTAL : 0);
+  const base2 = classicBalance !== null && typeof classicBalance === "object" ? classicBalance : {};
+  return {
+    ...base2,
+    total,
+    maxActive: Math.min(total, 6 + normalized),
+    spawnInterval: Math.min(2, 25 / total),
+    brutes: normalized >= 5 ? 1 : 0,
+    bosses: 0,
+    seconds: signaled ? SIEGE.convoySeconds : SIEGE.waveSeconds
+  };
+}
+
+// public/supply-siege-ui.js
+function createSiegeDesk({ buy, start, leave: leave2, releaseControls }) {
+  const panel = document.createElement("section");
+  panel.id = "siege-desk";
+  panel.className = "siege-overlay";
+  panel.hidden = true;
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-modal", "true");
+  panel.setAttribute("aria-labelledby", "siege-heading");
+  panel.innerHTML = `<div class="siege-desk">
+    <div class="siege-top"><span class="eyebrow" data-i18n="siege.eyebrow"></span><span class="siege-frozen" data-i18n="siege.frozen"></span></div>
+    <h2 id="siege-heading" tabindex="-1" data-i18n="siege.title"></h2>
+    <p data-i18n="siege.brief"></p><ol class="siege-route" aria-label="Assaults">${Array.from({ length: SIEGE.waves }, (_, i) => `<li>${String(i + 1).padStart(2, "0")}</li>`).join("")}</ol>
+    <div class="siege-ledger" role="status" aria-live="polite"></div>
+    <p class="siege-carry" data-i18n="siege.carry"></p>
+    <div class="siege-purchases">${Object.entries(SIEGE_COSTS).map(([id, cost]) => `<button type="button" data-siege-buy="${id}"><span class="siege-cost">${cost}</span><strong data-i18n="siege.${id}"></strong><small data-i18n="siege.${id}Help"></small><em></em></button>`).join("")}</div>
+    <fieldset class="siege-orders"><legend data-i18n="siege.orders"></legend>
+      <label><input type="radio" name="siege-risk" value="quiet" checked><span><strong data-i18n="siege.quiet"></strong><small data-i18n="siege.quietHelp"></small></span></label>
+      <label><input type="radio" name="siege-risk" value="convoy"><span><strong data-i18n="siege.convoy"></strong><small data-i18n="siege.convoyHelp"></small></span></label>
+    </fieldset><p class="siege-forecast" role="status" aria-live="polite"></p>
+    <div class="siege-actions"><button type="button" class="text-button siege-leave" data-i18n="siege.leave"></button><button type="button" class="primary siege-launch" data-i18n="siege.launch"></button></div>
+    <p class="siege-help" data-i18n="siege.help"></p>
+  </div>`;
+  document.body.append(panel);
+  let planningWave = null, current = null, pendingPurchase = null;
+  const buttons = [...panel.querySelectorAll("[data-siege-buy]")];
+  const radio = () => panel.querySelector('[value="convoy"]').checked;
+  const forecast = () => {
+    if (!current) return;
+    const final = current.siege.nextAssault === SIEGE.waves;
+    const profile = siegeWaveProfile(current.siege.nextAssault, radio(), {});
+    panel.querySelector(".siege-forecast").textContent = t(final ? "siege.finalForecast" : "siege.forecast", { seconds: profile.seconds, threats: profile.total, reward: radio() ? SIEGE.convoyReward : SIEGE.quietReward });
+  };
+  for (const button of buttons) button.addEventListener("click", () => {
+    pendingPurchase = button.dataset.siegeBuy;
+    buy(pendingPurchase);
+  });
+  panel.querySelectorAll("input").forEach((input) => input.addEventListener("change", forecast));
+  panel.querySelector(".siege-launch").addEventListener("click", () => start(radio()));
+  panel.querySelector(".siege-leave").addEventListener("click", leave2);
+  panel.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const focusable = [...panel.querySelectorAll("button:not(:disabled),input:not(:disabled)")];
+    const first = focusable[0], last = focusable.at(-1);
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.querySelector("h2"))) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  });
+  return {
+    update(snapshot2, self2, inGame2) {
+      current = snapshot2;
+      const visible = !!(inGame2 && snapshot2?.siege?.planning && self2?.alive && !self2.downed);
+      const opening = visible && (panel.hidden || planningWave !== snapshot2.wave);
+      panel.hidden = !visible;
+      if (!visible) {
+        planningWave = null;
+        return false;
+      }
+      if (opening) {
+        planningWave = snapshot2.wave;
+        panel.querySelector('[value="quiet"]').checked = true;
+        releaseControls();
+        panel.querySelector("h2").focus({ preventScroll: true });
+      }
+      translateDom(panel);
+      const finalAssault = snapshot2.siege.nextAssault === SIEGE.waves;
+      panel.querySelector('[value="convoy"]').disabled = finalAssault;
+      if (finalAssault) panel.querySelector('[value="quiet"]').checked = true;
+      panel.querySelector(".siege-ledger").textContent = t("siege.ledger", { supplies: snapshot2.siege.supplies, hp: Math.ceil(self2.hp), ammo: snapshot2.siege.reserveAmmo });
+      for (const [index, item] of [...panel.querySelectorAll(".siege-route li")].entries()) {
+        item.classList.toggle("done", index < snapshot2.wave);
+        item.classList.toggle("next", index === snapshot2.wave);
+      }
+      for (const button of buttons) {
+        const id = button.dataset.siegeBuy;
+        button.disabled = !snapshot2.siege.available[id];
+        button.querySelector("em").textContent = t(snapshot2.siege.purchased.includes(id) ? "siege.bought" : snapshot2.siege.supplies < SIEGE_COSTS[id] ? "siege.tooCostly" : !snapshot2.siege.available[id] ? "siege.notNeeded" : "siege.buy");
+      }
+      if (pendingPurchase && snapshot2.siege.purchased.includes(pendingPurchase)) {
+        (buttons.find((button) => !button.disabled) ?? panel.querySelector(".siege-launch")).focus({ preventScroll: true });
+        pendingPurchase = null;
+      }
+      forecast();
+      return opening;
+    },
+    reset() {
+      current = null;
+      planningWave = null;
+      pendingPurchase = null;
+      panel.hidden = true;
+    }
+  };
+}
+
 // public/client.js
 init_three_module();
 
@@ -76030,7 +76240,7 @@ for (const name of ["claimSupply", "takeBonus", "buySupply"]) {
 init_rules();
 
 // public/last-night-rules.js
-var WAVE_TOTALS = Object.freeze([6, 8, 10, 12, 14, 16, 18, 20, 22, 24]);
+var WAVE_TOTALS2 = Object.freeze([6, 8, 10, 12, 14, 16, 18, 20, 22, 24]);
 var MAX_DELTA_SECONDS = 0.25;
 var LAST_NIGHT = Object.freeze({
   mode: "last-night",
@@ -76047,7 +76257,7 @@ function normalizeWave(wave) {
 }
 function lastNightBalance(wave, classicBalance) {
   const w = normalizeWave(wave);
-  const total = WAVE_TOTALS[w - 1];
+  const total = WAVE_TOTALS2[w - 1];
   return {
     ...classicBalance,
     total,
@@ -76182,6 +76392,130 @@ function parseSaveText(text3) {
   }
 }
 
+// public/supply-siege.js
+init_rules();
+init_character_bonuses();
+var SupplySiegeSimulation = class extends LastNightSimulation {
+  constructor(code, options = {}) {
+    super(code, options);
+    this.ledger = newSiegeLedger();
+    this.planning = false;
+    this.convoy = false;
+  }
+  get mode() {
+    return SIEGE.mode;
+  }
+  get maxWaves() {
+    return SIEGE.waves;
+  }
+  currentWaveBalance() {
+    return siegeWaveProfile(this.wave, this.convoy, waveBalance(Math.max(1, this.wave * 2 - 1), 1));
+  }
+  start(id) {
+    if (!super.start(id)) return false;
+    this.ledger = newSiegeLedger();
+    this.convoy = false;
+    this.planning = true;
+    this.resetPlayerControls(true);
+    return true;
+  }
+  beginWave() {
+    if (this.planning) return false;
+    const begun = super.beginWave();
+    if (begun) this.waveTimeLeft = this.currentWaveBalance().seconds;
+    return begun;
+  }
+  // Never call the automatic resupply path: wounds, ammo and armour carry over.
+  finishWave() {
+    if (this.phase !== "wave" || this.waveTimeLeft > 0 || this.spawnWarnings.size || !this.livingPlayers().length) return false;
+    if (this.wave >= this.maxWaves) return this.beginExtraction();
+    this.payReviveCredits("wave");
+    this.ledger = finishSiegeAssault(this.ledger, this.convoy);
+    this.phase = "intermission";
+    this.timeLeft = 3;
+    this.planning = true;
+    this.resetPlayerControls(true);
+    this.bullets.clear();
+    this.grenades.clear();
+    for (const player of this.players.values()) this.clearWeaponReloads(player);
+    this.event("siege-break", { wave: this.wave, supplies: this.ledger.supplies });
+    return true;
+  }
+  availability(player = this.players.get(this.hostId)) {
+    const usable = this.planning && player?.alive && !player.downed;
+    const eligible = {
+      ammo: usable && Object.entries(player.inventory).some(([id, stock]) => {
+        const profile = this.weaponProfile(player, id);
+        return !profile.melee && (stock.ammo < profile.magazine || stock.reserve < profile.reserve);
+      }),
+      medicine: usable && player.hp < characterStats(player).maxHp,
+      barricades: usable && this.doors.some((door) => !door.sealed && door.hp < door.maxHp),
+      shotgun: usable && this.wave >= 1 && !player.inventory.shotgun && !player.issuedWeapons.has("shotgun") && Object.keys(player.inventory).length < this.weaponSlots(player)
+    };
+    return Object.fromEntries(Object.keys(SIEGE_COSTS).map((item) => [item, !!eligible[item] && !!purchaseSiegeItem(this.ledger, item)]));
+  }
+  buySiege(id, item) {
+    if (id !== this.hostId || !Object.hasOwn(SIEGE_COSTS, item) || !this.availability()[item]) return false;
+    const next = purchaseSiegeItem(this.ledger, item), player = this.players.get(id);
+    if (!next) return false;
+    if (item === "medicine") player.hp = Math.min(characterStats(player).maxHp, player.hp + 45);
+    if (item === "barricades") {
+      for (const door of this.doors) if (!door.sealed) door.hp = door.maxHp;
+    }
+    if (item === "shotgun") {
+      const profile = this.weaponProfile(player, "shotgun");
+      player.inventory.shotgun = { ammo: profile.magazine, reserve: profile.reserve };
+      player.issuedWeapons.add("shotgun");
+    }
+    if (item === "ammo") {
+      for (const [weapon, stock] of Object.entries(player.inventory)) {
+        const profile = this.weaponProfile(player, weapon);
+        if (!profile.melee) Object.assign(stock, { ammo: profile.magazine, reserve: profile.reserve });
+      }
+      this.clearWeaponReloads(player);
+    }
+    this.ledger = next;
+    this.event("siege-purchase", { item, supplies: this.ledger.supplies });
+    return true;
+  }
+  startSiegeAssault(id, convoy) {
+    if (id !== this.hostId || typeof convoy !== "boolean" || !this.planning || !this.livingPlayers().length) return false;
+    if (convoy && this.wave >= this.maxWaves - 1) return false;
+    this.convoy = convoy;
+    this.planning = false;
+    this.paused = false;
+    this.pauseById = null;
+    this.timeLeft = 3;
+    this.resetPlayerControls(true);
+    return true;
+  }
+  // The planning desk is a true freeze, including projectiles and reloads.
+  setPause(id, paused) {
+    return this.planning ? false : super.setPause(id, paused);
+  }
+  voteNextWave() {
+    return false;
+  }
+  tick(delta2) {
+    if (!this.planning) super.tick(delta2);
+  }
+  snapshot() {
+    const state = super.snapshot();
+    const player = this.players.get(this.hostId);
+    state.siege = {
+      planning: this.planning,
+      supplies: this.ledger.supplies,
+      purchased: [...this.ledger.purchased],
+      convoys: this.ledger.convoys,
+      convoy: this.convoy,
+      available: this.availability(player),
+      nextAssault: Math.min(SIEGE.waves, this.wave + 1),
+      reserveAmmo: player ? Object.values(player.inventory).reduce((sum, stock) => sum + (Number.isFinite(stock.reserve) ? stock.reserve : 0), 0) : 0
+    };
+    return state;
+  }
+};
+
 // public/solo-transport.js
 init_level_id();
 var PAUSED_MESSAGES = /* @__PURE__ */ new Set(["pause", "start", "restart", "ping", "leave", "ready", "save-game", "claim-seat", "load-begin", "load-chunk"]);
@@ -76263,7 +76597,7 @@ var SoloSocket = class _SoloSocket extends EventTarget {
       return;
     }
     this.build ??= typeof message.build === "string" ? message.build : "solo-open-v1";
-    const Simulation = message.mode === LAST_NIGHT_MODE && message.practice !== true ? LastNightSimulation : RoomSimulation;
+    const Simulation = message.practice === true ? RoomSimulation : message.mode === "supply-siege" ? SupplySiegeSimulation : message.mode === LAST_NIGHT_MODE ? LastNightSimulation : RoomSimulation;
     this.simulation = new Simulation(this.roomCode, {
       practice: message.practice === true,
       ambiance: message.ambiance,
@@ -76372,8 +76706,15 @@ var SoloSocket = class _SoloSocket extends EventTarget {
       this._packet({ type: "impact-numbers", enabled: message.enabled });
       return;
     }
+    if (sim.planning && !["siege-buy", "siege-start", "ping", "leave", "save-game", "restart", "start"].includes(message.type)) return;
     if (sim.paused && !PAUSED_MESSAGES.has(message.type)) return;
     switch (message.type) {
+      case "siege-buy":
+        if (sim.buySiege?.(id, message.item)) this._state();
+        break;
+      case "siege-start":
+        if (sim.startSiegeAssault?.(id, message.convoy)) this._state();
+        break;
       case "ready":
         sim.readyPlayer(id);
         this._state();
@@ -81837,7 +82178,20 @@ var dualCycleSince = null;
 var dualCycleConsumed = false;
 var websocket = null;
 var myId = null;
-var selectedSoloMode = "classic";
+var selectedSoloMode = "supply-siege";
+var isSiege = () => snapshot?.mode === "supply-siege";
+var isPlanning = () => snapshot?.siege?.planning === true;
+var isShortNight = () => isLastNight() || isSiege();
+var siegeResumeRequested = false;
+var siegeDesk = createSiegeDesk({ buy: (item) => send({ type: "siege-buy", item }), start: (convoy) => {
+  siegeResumeRequested = true;
+  send({ type: "siege-start", convoy });
+}, leave: () => leave(), releaseControls: () => {
+  resetInput();
+  document.exitPointerLock?.();
+  $("pause").hidden = true;
+  hideWaveCard();
+} });
 var isLastNight = () => snapshot?.mode === "last-night";
 var room = null;
 var snapshot = null;
@@ -82586,6 +82940,7 @@ function placeInteraction() {
   plaque.style.top = `${Math.round(y)}px`;
 }
 function nextWaveAvailable(self2 = myPlayer()) {
+  if (isSiege()) return false;
   return Boolean(inGame && self2 && !self2.waiting && snapshot?.phase === "intermission" && snapshot.practice !== true && snapshot.paused !== true);
 }
 function useReviveKit() {
@@ -83853,7 +84208,7 @@ function finishedPhase(phase) {
   return phase === "gameover" || phase === "victory";
 }
 function controlsAvailable() {
-  return snapshot && snapshot.paused !== true && !myPlayer()?.waiting && pauseRequestTarget !== true && !finishedPhase(snapshot.phase) && snapshot.phase !== "extraction";
+  return snapshot && !isPlanning() && snapshot.paused !== true && !myPlayer()?.waiting && pauseRequestTarget !== true && !finishedPhase(snapshot.phase) && snapshot.phase !== "extraction";
 }
 function roomPauseAvailable() {
   return snapshot && ["countdown", "wave", "intermission", "extraction"].includes(snapshot.phase);
@@ -83895,10 +84250,10 @@ function refreshSaveControls() {
   if (snapshot && savePausedSeen && !paused && !saveRequested) $("save-game-status").hidden = true;
   if (snapshot) savePausedSeen = paused;
   $("save-game-button").hidden = !night;
-  $("save-game-button").disabled = !night || !paused || saveRequested || isLastNight();
-  $("save-game-hint").hidden = !night || paused && !isLastNight();
-  if (night && isLastNight()) writeText($("save-game-hint"), () => t("solo.noSave"));
-  if (night && !paused && !isLastNight()) writeText($("save-game-hint"), () => t(snapshot.hostId === myId ? "save.pauseFirstHost" : "save.pauseFirstGuest"));
+  $("save-game-button").disabled = !night || !paused || saveRequested || isShortNight();
+  $("save-game-hint").hidden = !night || paused && !isShortNight();
+  if (night && isShortNight()) writeText($("save-game-hint"), () => t(isSiege() ? "siege.noSave" : "solo.noSave"));
+  if (night && !paused && !isShortNight()) writeText($("save-game-hint"), () => t(snapshot.hostId === myId ? "save.pauseFirstHost" : "save.pauseFirstGuest"));
 }
 function saveReason(code) {
   return t(`save.reason.${typeof code === "string" && t(`save.reason.${code}`) !== `save.reason.${code}` ? code : "error"}`);
@@ -83908,7 +84263,7 @@ function saveStatus(text3) {
   $("save-game-status").hidden = false;
 }
 function requestSave() {
-  if (!savableNight() || snapshot.paused !== true || saveRequested || isLastNight()) return;
+  if (!savableNight() || snapshot.paused !== true || saveRequested || isShortNight()) return;
   saveRequested = true;
   saveStatus(() => t("save.saving"));
   refreshSaveControls();
@@ -84266,7 +84621,7 @@ function connect({ practice = false, load = null } = {}) {
   }, 8e3);
   const sheet = practice ? null : mapSheetDraft ?? characterPicker.joinSheet();
   mapSheetDraft = null;
-  socket.addEventListener("open", () => socket.send(JSON.stringify({ type: "join", room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...!practice && !load && selectedSoloMode === "last-night" ? { mode: "last-night" } : {}, ...sheet ? { sheet } : {}, ...practice ? { practice: true } : {}, ...ambiance ? { ambiance } : {}, ...pageBuild ? { build: pageBuild } : {} })));
+  socket.addEventListener("open", () => socket.send(JSON.stringify({ type: "join", room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...!practice && !load && selectedSoloMode !== "classic" ? { mode: selectedSoloMode } : {}, ...sheet ? { sheet } : {}, ...practice ? { practice: true } : {}, ...ambiance ? { ambiance } : {}, ...pageBuild ? { build: pageBuild } : {} })));
   socket.addEventListener("message", (event) => {
     if (socket !== websocket) return;
     let message;
@@ -84494,7 +84849,7 @@ function refreshState(oldSelf) {
     renderCompanions();
     renderCharacterChoice();
     refreshStartButton();
-    writeText($("lobby-note"), () => t(practice ? "practice.pauseDescription" : isLastNight() ? "solo.lastNightLobby" : "lobby.note"));
+    writeText($("lobby-note"), () => t(practice ? "practice.pauseDescription" : isSiege() ? "siege.lobby" : isLastNight() ? "solo.lastNightLobby" : "lobby.note"));
   }
   writeText($("phase-label"), paused ? () => t("pause.stoppedLabel") : practice ? () => t("practice.title") : phaseNames[snapshot.phase] || "REFUGE");
   const maxWaves = snapshot.maxWaves ?? MAX_WAVES;
@@ -84506,6 +84861,10 @@ function refreshState(oldSelf) {
     writeText($("phase-label"), () => t(paused ? "solo.paused" : "solo.lastNight"));
     if (snapshot.phase === "wave") writeText($("wave-details"), () => t("solo.waveClock", { seconds: Math.ceil(snapshot.waveTimeLeft), remaining: snapshot.remaining }));
     else if (snapshot.phase === "intermission") writeText($("wave-details"), () => t("solo.resupply", { seconds: Math.ceil(snapshot.timeLeft) }));
+  }
+  if (isSiege()) {
+    writeText($("phase-label"), () => t("siege.title"));
+    if (["countdown", "intermission", "wave"].includes(snapshot.phase)) writeText($("wave-details"), () => t(isPlanning() ? "siege.frozen" : snapshot.phase === "wave" ? "siege.waveClock" : "siege.ready", { seconds: Math.ceil(snapshot.waveTimeLeft), supplies: snapshot.siege.supplies }));
   }
   refreshRaidResult();
   const melee = meleeProfile(self2.weapon);
@@ -84574,11 +84933,11 @@ function refreshState(oldSelf) {
     writeText($("results-wait"), "L\u2019h\xF4te peut lancer une nouvelle nuit. Tu peux aussi quitter le refuge.");
     $("gameover").classList.toggle("victory", snapshot.phase === "victory");
     writeText($("gameover-eyebrow"), snapshot.phase === "victory" ? "LE JOUR S\u2019EST LEV\xC9" : "LA LUMI\xC8RE S\u2019EST \xC9TEINTE");
-    writeText($("gameover-title"), () => t(isLastNight() ? snapshot.phase === "victory" ? "solo.dawn" : "solo.defeat" : snapshot.phase === "victory" ? "solo.classicWin" : "results.title"));
+    writeText($("gameover-title"), () => t(isSiege() ? snapshot.phase === "victory" ? "siege.win" : "siege.loss" : isLastNight() ? snapshot.phase === "victory" ? "solo.dawn" : "solo.defeat" : snapshot.phase === "victory" ? "solo.classicWin" : "results.title"));
     const kills = snapshot.players.reduce((sum, player) => sum + player.kills, 0);
     const score = snapshot.players.reduce((sum, player) => sum + player.score, 0);
     writeText($("gameover-result"), snapshot.phase === "victory" ? `${maxWaves} vagues travers\xE9es. L\u2019h\xE9licopt\xE8re vous a ramen\xE9s \xE0 l\u2019abri. ${kills} \xE9liminations \xB7 score d\u2019\xE9quipe ${score}.` : `Votre \xE9quipe a atteint la vague ${snapshot.wave}/${maxWaves}. La for\xEAt se souviendra de vous.`);
-    writeText($("gameover-result"), () => t(snapshot.phase === "victory" ? "solo.winSummary" : "solo.lossSummary", { mode: t(isLastNight() ? "solo.lastNightName" : "solo.classicName"), wave: snapshot.wave, total: maxWaves, kills, score }));
+    writeText($("gameover-result"), () => t(snapshot.phase === "victory" ? "solo.winSummary" : "solo.lossSummary", { mode: t(isSiege() ? "siege.title" : isLastNight() ? "solo.lastNightName" : "solo.classicName"), wave: snapshot.wave, total: maxWaves, kills, score }));
     if (hostChanged && !host) {
       restartRequested = false;
       $("restart-button").disabled = false;
@@ -84601,7 +84960,7 @@ function refreshState(oldSelf) {
     }
     if (snapshot.phase === "intermission") {
       banner("VOUS AVEZ TENU", "REPRENEZ SOUFFLE");
-      showWaveCard();
+      if (!isSiege()) showWaveCard();
     } else hideWaveCard();
     recordAim("phase-change", { previousPhase: lastPhase });
     if (snapshot.phase === "countdown") {
@@ -84647,6 +85006,11 @@ function refreshState(oldSelf) {
     lastPhase = snapshot.phase;
   }
   if (!requestedResume && (paused && ($("pause").hidden || pauseChanged || hostChanged) || !$("pause").hidden && (phaseChanged || hostChanged || pauseChanged))) showPause();
+  siegeDesk.update(snapshot, self2, inGame);
+  if (siegeResumeRequested && !isPlanning()) {
+    siegeResumeRequested = false;
+    requestPointer();
+  }
   lastHostId = snapshot.hostId;
   refreshPauseControls();
   if (oldSelf?.downed && !self2.downed && self2.alive) toast("Tu es de nouveau sur pied.");
@@ -85834,7 +86198,8 @@ function enterGame() {
     showPause();
     return;
   }
-  requestPointer();
+  if (isPlanning()) siegeDesk.update(snapshot, myPlayer(), inGame);
+  else requestPointer();
 }
 function requestPointer() {
   if (!controlsAvailable()) return;
@@ -85909,6 +86274,7 @@ function shotRumble(weapon) {
   playRumble(activePad, rumbleEffect(weapon, controllerSettings.rumble));
 }
 function showPause(description) {
+  if (isPlanning()) return;
   if (!inGame || supplyMenu || finishedPhase(snapshot?.phase) || snapshot?.phase === "extraction" && !snapshot.paused) return;
   if (roomPauseAvailable() && !snapshot.paused && pauseRequestTarget !== true) {
     requestRoomPause(true);
@@ -85925,6 +86291,8 @@ function showPause(description) {
   refreshPauseControls();
 }
 function leave(close = true) {
+  siegeDesk.reset();
+  siegeResumeRequested = false;
   closeSupplyMenu(false);
   hideWaveCard();
   ambianceEntryPending = false;
@@ -86057,18 +86425,18 @@ $("join-tab").onclick = () => {
   setJoinMode(true);
   $("room-code").focus();
 };
-for (const mode of ["classic", "last-night"]) {
+for (const mode of ["classic", "last-night", "supply-siege"]) {
   $(`mode-${mode}`)?.addEventListener("click", () => {
     selectedSoloMode = mode;
-    const intro = document.querySelector('[data-i18n="intro.description.first"], [data-i18n="solo.lastNightIntro"]');
+    const intro = document.querySelector('[data-i18n="intro.description.first"], [data-i18n="solo.lastNightIntro"], [data-i18n="siege.intro"]');
     if (intro) {
-      const key = mode === "last-night" ? "solo.lastNightIntro" : "intro.description.first";
+      const key = mode === "supply-siege" ? "siege.intro" : mode === "last-night" ? "solo.lastNightIntro" : "intro.description.first";
       intro.setAttribute("data-i18n", key);
       intro.textContent = t(key);
     }
     const waveCount = document.querySelectorAll(".feature-strip b")[1];
-    if (waveCount) waveCount.textContent = mode === "last-night" ? "10" : "20";
-    for (const choice of ["classic", "last-night"]) {
+    if (waveCount) waveCount.textContent = mode === "supply-siege" ? "6" : mode === "last-night" ? "10" : "20";
+    for (const choice of ["classic", "last-night", "supply-siege"]) {
       $(`mode-${choice}`).classList.toggle("selected", choice === mode);
       $(`mode-${choice}`).setAttribute("aria-pressed", String(choice === mode));
     }
@@ -86404,6 +86772,7 @@ document.addEventListener("contextmenu", (event) => {
   if (myPlayer()?.dualWield || meleeControlsActive() || scopeControlsActive()) event.preventDefault();
 });
 document.addEventListener("keydown", (event) => {
+  if (isPlanning()) return;
   if (event.code === "Tab" && survivorSheetKeyAllowed(event)) {
     event.preventDefault?.();
     if (!event.repeat) toggleSurvivorSheet();
