@@ -23,7 +23,7 @@
       <div class="eyebrow"><span class="line"></span><span data-i18n="intro.eyebrow">LA FORÊT NE DORT PLUS.</span></div>
       <h1 class="solo-title"><span class="title-word" data-i18n="intro.title.first">Deadwood</span></h1>
       <p class="solo-edition" data-i18n="intro.title.second">Solo Open</p>
-      <p><span data-i18n="intro.description.first">Une cabane. Quatre portes. Vingt vagues à tenir.</span><br><span data-i18n="intro.description.second">Restez ensemble. L’extraction vous attend au matin.</span></p>
+      <p><span data-i18n="siege.intro">Une cabane. Quatre portes. Vingt vagues à tenir.</span><br><span data-i18n="intro.description.second">Restez ensemble. L’extraction vous attend au matin.</span></p>
       <p class="field-guide" data-i18n="intro.guide">Ouvre un passage dans les barricades. B : parapluie contre la pluie corrosive ; replie-le pour tirer.</p>
       <p class="field-guide movement-guide" data-i18n="controls.guide">Maj : courir · C maintenu : s’accroupir · Espace : sauter</p>
       <details class="enemy-guide">
@@ -35,7 +35,7 @@
           <p id="enemy-guide-raiders" class="enemy-guide-raiders" data-i18n="enemyGuide.raiders">Pillards, à la fin des vagues 5, 10 et 15 : humains armés, bandana rouge et lunettes vertes. Ils tirent par les fenêtres puis forcent les barricades. Baisse-toi sous l’appui, vise la tête, répare.</p>
         </div>
       </details>
-      <div class="feature-strip"><span><b>01—04</b> <span data-i18n="intro.survivors">SURVIVANTS</span></span><span><b>20</b> <span data-i18n="intro.waves">VAGUES</span></span><span><b>2</b> <span data-i18n="intro.floors">NIVEAUX</span></span></div>
+      <div class="feature-strip"><span><b>01—04</b> <span data-i18n="intro.survivors">SURVIVANTS</span></span><span><b>6</b> <span data-i18n="intro.waves">VAGUES</span></span><span><b>2</b> <span data-i18n="intro.floors">NIVEAUX</span></span></div>
       <div class="scene-caption"><span class="coordinates" data-i18n="intro.coordinates">REFUGE 07 / DEADWOOD</span><span>48° 17′ N &nbsp; 121° 42′ W</span></div>
     </section>
     <section class="setup-panel">
@@ -45,10 +45,11 @@
       <section class="difficulty-picker solo-mode-picker" aria-labelledby="solo-mode-heading">
         <span id="solo-mode-heading" class="difficulty-title" data-i18n="solo.mode">CHOISIS TA NUIT</span>
         <div class="difficulty-options">
-          <button id="mode-classic" type="button" class="difficulty-option selected" aria-pressed="true" data-i18n="solo.classic">Classique · 20 vagues</button>
+          <button id="mode-supply-siege" type="button" class="difficulty-option selected" aria-pressed="true" data-i18n="siege.title">Supply Siege</button>
+          <button id="mode-classic" type="button" class="difficulty-option" aria-pressed="false" data-i18n="solo.classic">Classique · 20 vagues</button>
           <button id="mode-last-night" type="button" class="difficulty-option" aria-pressed="false" data-i18n="solo.lastNight">Last Night · 5 minutes</button>
         </div>
-        <small class="difficulty-detail" data-i18n="solo.modeHelp">Last Night : dix vagues chronométrées. Survis jusqu’à l’aube ; les ennemis restants se dispersent entre les vagues.</small>
+        <small class="difficulty-detail" data-i18n="siege.modeHelp">Last Night : dix vagues chronométrées. Survis jusqu’à l’aube ; les ennemis restants se dispersent entre les vagues.</small>
       </section>
       <label class="field-label" for="player-name" data-i18n="setup.name">TON NOM</label>
       <input id="player-name" maxlength="18" placeholder="Survivant" autocomplete="nickname" data-i18n-placeholder="setup.namePlaceholder">

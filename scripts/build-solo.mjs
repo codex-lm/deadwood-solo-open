@@ -32,13 +32,13 @@ const VENDOR_MODULES = new Map([
 ]);
 
 export const SOLO_MANIFEST = {
-  title: 'Deadwood Solo Open - Last Night',
-  description: 'Survive ten timed solo waves in your browser with Last Night, a five-minute stand until dawn. Enemies scatter between waves, with health and ammunition refilled; the original twenty-wave campaign and practice remain available. Automatically produced by LOB7 Enhancement.',
+  title: 'Deadwood Solo Open - Supply Siege',
+  description: 'Hold six solo assaults in your browser with Supply Siege: health and ammunition carry over, so spend scarce supplies on healing, ammunition, barricades or a shotgun. Signal a convoy for a longer, denser assault and a bigger supply reward; Classic, Last Night and practice remain available. Automatically produced by LOB7 Enhancement.',
   entrypoint: 'index.html',
   license: 'MIT',
   genre: ['Survival', 'FPS'],
   themes: ['Forest'],
-  controls: ['Keyboard and mouse or an Xbox-compatible gamepad.', 'WASD/ZQSD or arrows: move; mouse: look; left click: fire.', 'Shift: run; C: crouch; Space: jump; R: reload.', '1–4 or wheel: weapons; E: interact; V: drop weapon.', 'G: grenade; B: umbrella; N: next wave.', 'Choose Classic (20 waves) or Last Night (ten 25-second survival waves) before starting.', 'Esc or P: pause; Last Night has no mid-run saves. Classic saves remain available.'],
+  controls: ['Keyboard and mouse or an Xbox-compatible gamepad.', 'WASD/ZQSD or arrows: move; mouse: look; left click: fire.', 'Shift: run; C: crouch; Space: jump; R: reload.', '1–4 or wheel: weapons; E: interact; V: drop weapon.', 'G: grenade; B: umbrella; N: next wave.', 'Choose Supply Siege (6 assaults), Classic (20 waves), Last Night (10 timed waves) or practice.', 'Supply Siege: use mouse or Tab + Enter at the planning desk; buy supplies, choose an order, then Defend the cabin.', 'Esc or P: pause; Supply Siege and Last Night have no mid-run saves. Classic saves remain available.'],
   credits: ['Published by Nilo.', 'Created with Codex, Claude and Kimi.', `Based on Deadwood — Last Light (${UPSTREAM_URL}).`],
   assetsLicense: 'Media are licensed under CC BY 4.0. Original attribution and generation sources are preserved in ASSETS-LICENSE.md. Some sounds from the hosted upstream game are excluded and use synthesised fallbacks.',
 };

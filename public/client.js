@@ -1,3 +1,4 @@
+import { createSiegeDesk } from './supply-siege-ui.js';
 import * as THREE from '/vendor/three.module.js';
 import { SoloSocket as WebSocket } from './solo-transport.js';
 import { WEAPONS as SOLO_WEAPONS } from '../simulation.mjs';
@@ -176,7 +177,12 @@ let secondaryGun = null, secondaryGunId = null, secondaryFiring = false, seconda
 let dualCycleSince = null, dualCycleConsumed = false;
 let websocket = null;
 let myId = null;
-let selectedSoloMode = 'classic';
+let selectedSoloMode = 'supply-siege';
+const isSiege = () => snapshot?.mode === 'supply-siege';
+const isPlanning = () => snapshot?.siege?.planning === true;
+const isShortNight = () => isLastNight() || isSiege();
+let siegeResumeRequested = false;
+const siegeDesk = createSiegeDesk({ buy:item => send({type:'siege-buy',item}), start:convoy => { siegeResumeRequested = true; send({type:'siege-start',convoy}); }, leave:() => leave(), releaseControls:() => { resetInput(); document.exitPointerLock?.(); $('pause').hidden = true; hideWaveCard(); } });
 const isLastNight = () => snapshot?.mode === 'last-night';
 let room = null;
 let snapshot = null;
@@ -740,6 +746,7 @@ function placeInteraction() {
 // The break between two waves ends early once every survivor is ready
 // (N on the keyboard, View on the controller).
 function nextWaveAvailable(self = myPlayer()) {
+  if (isSiege()) return false;
   return Boolean(inGame && self && !self.waiting && snapshot?.phase === 'intermission' && snapshot.practice !== true && snapshot.paused !== true);
 }
 // The revive kit (F; on the controller RB while down, D-pad up next to a
@@ -1817,7 +1824,7 @@ function updateMinigunSpin(self = myPlayer()) {
   }
 }
 function finishedPhase(phase) { return phase === 'gameover' || phase === 'victory'; }
-function controlsAvailable() { return snapshot && snapshot.paused !== true && !myPlayer()?.waiting && pauseRequestTarget !== true && !finishedPhase(snapshot.phase) && snapshot.phase !== 'extraction'; }
+function controlsAvailable() { return snapshot && !isPlanning() && snapshot.paused !== true && !myPlayer()?.waiting && pauseRequestTarget !== true && !finishedPhase(snapshot.phase) && snapshot.phase !== 'extraction'; }
 function roomPauseAvailable() { return snapshot && ['countdown','wave','intermission','extraction'].includes(snapshot.phase); }
 function refreshPauseControls() {
   const paused = snapshot?.paused === true, host = snapshot?.hostId === myId;
@@ -1851,15 +1858,15 @@ function refreshSaveControls() {
   if (snapshot && savePausedSeen && !paused && !saveRequested) $('save-game-status').hidden = true;
   if (snapshot) savePausedSeen = paused;
   $('save-game-button').hidden = !night;
-  $('save-game-button').disabled = !night || !paused || saveRequested || isLastNight();
-  $('save-game-hint').hidden = !night || (paused && !isLastNight());
-  if (night && isLastNight()) writeText($('save-game-hint'), () => t('solo.noSave'));
-  if (night && !paused && !isLastNight()) writeText($('save-game-hint'), () => t(snapshot.hostId === myId ? 'save.pauseFirstHost' : 'save.pauseFirstGuest'));
+  $('save-game-button').disabled = !night || !paused || saveRequested || isShortNight();
+  $('save-game-hint').hidden = !night || (paused && !isShortNight());
+  if (night && isShortNight()) writeText($('save-game-hint'), () => t(isSiege() ? 'siege.noSave' : 'solo.noSave'));
+  if (night && !paused && !isShortNight()) writeText($('save-game-hint'), () => t(snapshot.hostId === myId ? 'save.pauseFirstHost' : 'save.pauseFirstGuest'));
 }
 function saveReason(code) { return t(`save.reason.${typeof code === 'string' && t(`save.reason.${code}`) !== `save.reason.${code}` ? code : 'error'}`); }
 function saveStatus(text) { writeText($('save-game-status'), text); $('save-game-status').hidden = false; }
 function requestSave() {
-  if (!savableNight() || snapshot.paused !== true || saveRequested || isLastNight()) return;
+  if (!savableNight() || snapshot.paused !== true || saveRequested || isShortNight()) return;
   saveRequested = true; saveStatus(() => t('save.saving')); refreshSaveControls();
   send({ type: 'save-game' });
 }
@@ -2134,7 +2141,7 @@ function connect({ practice = false, load = null } = {}) {
   }, 8000);
   const sheet = practice ? null : mapSheetDraft ?? characterPicker.joinSheet();
   mapSheetDraft = null;
-  socket.addEventListener('open', () => socket.send(JSON.stringify({ type: 'join', room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...(!practice && !load && selectedSoloMode === 'last-night' ? { mode: 'last-night' } : {}), ...(sheet ? { sheet } : {}), ...(practice ? { practice: true } : {}), ...(ambiance ? { ambiance } : {}), ...(pageBuild ? { build: pageBuild } : {}) })));
+  socket.addEventListener('open', () => socket.send(JSON.stringify({ type: 'join', room: joinRoom, name: playerName, weapon: STARTER_WEAPON, ...(!practice && !load && selectedSoloMode !== 'classic' ? { mode: selectedSoloMode } : {}), ...(sheet ? { sheet } : {}), ...(practice ? { practice: true } : {}), ...(ambiance ? { ambiance } : {}), ...(pageBuild ? { build: pageBuild } : {}) })));
   socket.addEventListener('message', event => {
     if (socket !== websocket) return;
     let message;
@@ -2274,7 +2281,7 @@ function refreshState(oldSelf) {
   if (!$('lobby').hidden) {
     playerList($('lobby-players')); renderAmbiance(); renderDifficulty(); renderFriendlyFire(); renderCompanions(); renderCharacterChoice();
     refreshStartButton();
-    writeText($('lobby-note'), () => t(practice ? 'practice.pauseDescription' : isLastNight() ? 'solo.lastNightLobby' : 'lobby.note'));
+    writeText($('lobby-note'), () => t(practice ? 'practice.pauseDescription' : isSiege() ? 'siege.lobby' : isLastNight() ? 'solo.lastNightLobby' : 'lobby.note'));
   }
   writeText($('phase-label'), paused ? () => t('pause.stoppedLabel') : practice ? () => t('practice.title') : phaseNames[snapshot.phase] || 'REFUGE');
   const maxWaves = snapshot.maxWaves ?? MAX_WAVES;
@@ -2286,6 +2293,10 @@ function refreshState(oldSelf) {
     writeText($('phase-label'), () => t(paused ? 'solo.paused' : 'solo.lastNight'));
     if (snapshot.phase === 'wave') writeText($('wave-details'), () => t('solo.waveClock', { seconds: Math.ceil(snapshot.waveTimeLeft), remaining: snapshot.remaining }));
     else if (snapshot.phase === 'intermission') writeText($('wave-details'), () => t('solo.resupply', { seconds: Math.ceil(snapshot.timeLeft) }));
+  }
+  if (isSiege()) {
+    writeText($('phase-label'), () => t('siege.title'));
+    if (['countdown','intermission','wave'].includes(snapshot.phase)) writeText($('wave-details'), () => t(isPlanning() ? 'siege.frozen' : snapshot.phase === 'wave' ? 'siege.waveClock' : 'siege.ready', {seconds:Math.ceil(snapshot.waveTimeLeft),supplies:snapshot.siege.supplies}));
   }
   refreshRaidResult();
   const melee = meleeProfile(self.weapon);
@@ -2351,11 +2362,11 @@ function refreshState(oldSelf) {
     writeText($('results-wait'), 'L’hôte peut lancer une nouvelle nuit. Tu peux aussi quitter le refuge.');
     $('gameover').classList.toggle('victory', snapshot.phase === 'victory');
     writeText($('gameover-eyebrow'), snapshot.phase === 'victory' ? 'LE JOUR S’EST LEVÉ' : 'LA LUMIÈRE S’EST ÉTEINTE');
-    writeText($('gameover-title'), () => t(isLastNight() ? snapshot.phase === 'victory' ? 'solo.dawn' : 'solo.defeat' : snapshot.phase === 'victory' ? 'solo.classicWin' : 'results.title'));
+    writeText($('gameover-title'), () => t(isSiege() ? snapshot.phase === 'victory' ? 'siege.win' : 'siege.loss' : isLastNight() ? snapshot.phase === 'victory' ? 'solo.dawn' : 'solo.defeat' : snapshot.phase === 'victory' ? 'solo.classicWin' : 'results.title'));
     const kills = snapshot.players.reduce((sum, player) => sum + player.kills, 0);
     const score = snapshot.players.reduce((sum, player) => sum + player.score, 0);
     writeText($('gameover-result'), snapshot.phase === 'victory' ? `${maxWaves} vagues traversées. L’hélicoptère vous a ramenés à l’abri. ${kills} éliminations · score d’équipe ${score}.` : `Votre équipe a atteint la vague ${snapshot.wave}/${maxWaves}. La forêt se souviendra de vous.`);
-    writeText($('gameover-result'), () => t(snapshot.phase === 'victory' ? 'solo.winSummary' : 'solo.lossSummary', { mode: t(isLastNight() ? 'solo.lastNightName' : 'solo.classicName'), wave: snapshot.wave, total: maxWaves, kills, score }));
+    writeText($('gameover-result'), () => t(snapshot.phase === 'victory' ? 'solo.winSummary' : 'solo.lossSummary', { mode: t(isSiege() ? 'siege.title' : isLastNight() ? 'solo.lastNightName' : 'solo.classicName'), wave: snapshot.wave, total: maxWaves, kills, score }));
     if (hostChanged && !host) { restartRequested = false; $('restart-button').disabled = false; }
   }
   if (phaseChanged) {
@@ -2369,7 +2380,7 @@ function refreshState(oldSelf) {
       if (practice) banner(() => t('practice.title'), () => t('practice.ready'));
       else banner('ILS ARRIVENT', `VAGUE ${String(snapshot.wave).padStart(2, '0')}`);
     }
-    if (snapshot.phase === 'intermission') { banner('VOUS AVEZ TENU', 'REPRENEZ SOUFFLE'); showWaveCard(); } else hideWaveCard();
+    if (snapshot.phase === 'intermission') { banner('VOUS AVEZ TENU', 'REPRENEZ SOUFFLE'); if (!isSiege()) showWaveCard(); } else hideWaveCard();
     recordAim('phase-change', { previousPhase: lastPhase });
     if (snapshot.phase === 'countdown') { cameraReady = false; if (inGame) banner('RESTEZ ENSEMBLE', 'LA NUIT COMMENCE'); }
     if (snapshot.phase === 'extraction') {
@@ -2392,6 +2403,8 @@ function refreshState(oldSelf) {
     lastPhase = snapshot.phase;
   }
   if (!requestedResume && ((paused && ($('pause').hidden || pauseChanged || hostChanged)) || (!$('pause').hidden && (phaseChanged || hostChanged || pauseChanged)))) showPause();
+  siegeDesk.update(snapshot, self, inGame);
+  if (siegeResumeRequested && !isPlanning()) { siegeResumeRequested = false; requestPointer(); }
   lastHostId = snapshot.hostId;
   refreshPauseControls();
   if (oldSelf?.downed && !self.downed && self.alive) toast('Tu es de nouveau sur pied.');
@@ -3322,7 +3335,7 @@ function enterGame() {
   world.prewarm?.(renderer, camera);
   sound.unlock(); sound.updateScene(snapshot, inGame && snapshot?.paused !== true); if (gun) gun.visible = true; refreshOutside(myPlayer());
   if (snapshot?.paused) { world.update(visualSeconds(), {snapshot,myId,active:inGame,camera,survivors:playerMeshes}); showPause(); return; }
-  requestPointer();
+  if (isPlanning()) siegeDesk.update(snapshot, myPlayer(), inGame); else requestPointer();
 }
 function requestPointer() {
   if (!controlsAvailable()) return;
@@ -3368,6 +3381,7 @@ function shotRumble(weapon) {
   playRumble(activePad, rumbleEffect(weapon, controllerSettings.rumble));
 }
 function showPause(description) {
+  if (isPlanning()) return;
   if (!inGame || supplyMenu || finishedPhase(snapshot?.phase) || (snapshot?.phase === 'extraction' && !snapshot.paused)) return;
   // Opening a solo menu really pauses the local night, including on focus loss.
   if (roomPauseAvailable() && !snapshot.paused && pauseRequestTarget !== true) {
@@ -3384,6 +3398,7 @@ function showPause(description) {
   refreshPauseControls();
 }
 function leave(close = true) {
+  siegeDesk.reset(); siegeResumeRequested = false;
   closeSupplyMenu(false); hideWaveCard();
   ambianceEntryPending = false; if (ambianceWanted !== 'family') setAmbiance('family');
   ambianceFrame.self = ambianceFrame.snapshot = null;
@@ -3444,17 +3459,17 @@ $('level-picker').hidden = !mapContext.enabled || joinMode;
 refreshMapLabels();
 $('create-tab').onclick = () => setJoinMode(false);
 $('join-tab').onclick = () => { setJoinMode(true); $('room-code').focus(); };
-for (const mode of ['classic', 'last-night']) {
+for (const mode of ['classic', 'last-night', 'supply-siege']) {
   $(`mode-${mode}`)?.addEventListener('click', () => {
     selectedSoloMode = mode;
-    const intro = document.querySelector('[data-i18n="intro.description.first"], [data-i18n="solo.lastNightIntro"]');
+    const intro = document.querySelector('[data-i18n="intro.description.first"], [data-i18n="solo.lastNightIntro"], [data-i18n="siege.intro"]');
     if (intro) {
-      const key = mode === 'last-night' ? 'solo.lastNightIntro' : 'intro.description.first';
+      const key = mode === 'supply-siege' ? 'siege.intro' : mode === 'last-night' ? 'solo.lastNightIntro' : 'intro.description.first';
       intro.setAttribute('data-i18n', key); intro.textContent = t(key);
     }
     const waveCount = document.querySelectorAll('.feature-strip b')[1];
-    if (waveCount) waveCount.textContent = mode === 'last-night' ? '10' : '20';
-    for (const choice of ['classic', 'last-night']) {
+    if (waveCount) waveCount.textContent = mode === 'supply-siege' ? '6' : mode === 'last-night' ? '10' : '20';
+    for (const choice of ['classic', 'last-night', 'supply-siege']) {
       $(`mode-${choice}`).classList.toggle('selected', choice === mode);
       $(`mode-${choice}`).setAttribute('aria-pressed', String(choice === mode));
     }
@@ -3644,6 +3659,7 @@ document.addEventListener('mousedown', event => {
 document.addEventListener('mouseup', event => { if(event.button===2){secondaryHeld=false;secondaryFiring=false;releaseHandFire('secondary');setScope(false);}if (event.button === 0) { firing = false; stopMinigunSpin(); releaseHandFire(); } });
 document.addEventListener('contextmenu',event=>{if(myPlayer()?.dualWield||meleeControlsActive()||scopeControlsActive())event.preventDefault();});
 document.addEventListener('keydown', event => {
+  if (isPlanning()) return;
   if (event.code === 'Tab' && survivorSheetKeyAllowed(event)) {
     // One press shows the sheet, the next hides it; holding Tab does nothing more.
     event.preventDefault?.(); if (!event.repeat) toggleSurvivorSheet(); return;
