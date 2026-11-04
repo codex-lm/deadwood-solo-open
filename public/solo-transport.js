@@ -1,5 +1,7 @@
 import { RoomSimulation, TICK_RATE } from '../simulation.mjs';
+import { LastNightSimulation, LAST_NIGHT_MODE } from './last-night.js';
 import { receiveSaveUpload, parseSaveText } from '../save-transfer.mjs';
+import { SupplySiegeSimulation } from './supply-siege.js';
 import { LEVEL_ID } from './level-id.js';
 
 const PAUSED_MESSAGES = new Set(['pause', 'start', 'restart', 'ping', 'leave', 'ready', 'save-game', 'claim-seat', 'load-begin', 'load-chunk']);
@@ -90,7 +92,8 @@ export class SoloSocket extends EventTarget {
       return;
     }
     this.build ??= typeof message.build === 'string' ? message.build : 'solo-open-v1';
-    this.simulation = new RoomSimulation(this.roomCode, { practice: message.practice === true,
+    const Simulation = message.practice === true ? RoomSimulation : message.mode === 'supply-siege' ? SupplySiegeSimulation : message.mode === LAST_NIGHT_MODE ? LastNightSimulation : RoomSimulation;
+    this.simulation = new Simulation(this.roomCode, { practice: message.practice === true,
       ambiance: message.ambiance, random: this._random,
       onEvent: event => { if (this._joined) this._packet(event); } });
     this.simulation.companionsAvailable = false;
@@ -175,8 +178,11 @@ export class SoloSocket extends EventTarget {
       this._packet({ type: 'impact-numbers', enabled: message.enabled });
       return;
     }
+    if (sim.planning && !['siege-buy', 'siege-start', 'ping', 'leave', 'save-game', 'restart', 'start'].includes(message.type)) return;
     if (sim.paused && !PAUSED_MESSAGES.has(message.type)) return;
     switch (message.type) {
+      case 'siege-buy': if (sim.buySiege?.(id, message.item)) this._state(); break;
+      case 'siege-start': if (sim.startSiegeAssault?.(id, message.convoy)) this._state(); break;
       case 'ready': sim.readyPlayer(id); this._state(); break;
       case 'pause': if (sim.setPause(id, message.paused)) this._state(); break;
       case 'practice': sim.practiceAction(id, message); break;

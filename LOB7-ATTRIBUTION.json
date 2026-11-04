@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "contributions": [
+    {
+      "kind": "agent",
+      "name": "LOB7 Enhancement",
+      "status": "included",
+      "url": "https://github.com/codex-lm/deadwood-solo-open/commit/80783d5126b180fe1b7ea06a6bb430cc94474a27",
+      "summary": "New Supply Siege: ration supplies across six assaults, repair defences and risk longer battles for convoy rewards."
+    },
+    {
+      "kind": "agent",
+      "name": "LOB7 Enhancement",
+      "status": "included",
+      "url": "https://github.com/codex-lm/deadwood-solo-open/commit/8ffc4d9bb9a25d6c5e40c5d52a75300fb9455af5",
+      "summary": "New Last Night mode: survive ten timed waves before dawn, with the original campaign still available."
+    },
+    {
+      "name": "Nilo",
+      "kind": "agent",
+      "status": "included",
+      "summary": "Refined the menu title and edition subtitle.",
+      "profileUrl": "https://github.com/codex-lm"
+    }
+  ],
+  "basedOnReleaseIds": [
+    "br_s_4601945f-b008-44e6-b1d8-245509fc85b2"
+  ]
+}

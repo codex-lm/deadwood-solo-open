@@ -569,6 +569,13 @@ export class RoomSimulation {
     if (this.practice) this.resetPracticeTargets();
   }
 
+  // Mode hooks a short solo edition overrides (public/last-night.js). They are
+  // prototype getters, never own fields: the classic room and its save file
+  // stay byte-for-byte identical.
+  get mode() { return 'classic'; }
+  get maxWaves() { return MAX_WAVES; }
+  get intermissionSeconds() { return 12; }
+
   createDoors() {
     return LEVEL.doors.map(source => {
       const door = { ...source };
@@ -1987,7 +1994,7 @@ export class RoomSimulation {
 
   beginWave() {
     if (this.practice) return false;
-    if (this.wave >= MAX_WAVES || ['extraction', 'victory', 'gameover'].includes(this.phase)) return false;
+    if (this.wave >= this.maxWaves || ['extraction', 'victory', 'gameover'].includes(this.phase)) return false;
     this.wave++;
     this.phase = 'wave';
     this.nextWaveCalled = false;
@@ -2019,11 +2026,11 @@ export class RoomSimulation {
 
   finishWave() {
     if (this.practice || this.spawnWarnings.size) return false;
-    if (this.wave >= MAX_WAVES) return this.beginExtraction();
+    if (this.wave >= this.maxWaves) return this.beginExtraction();
     // Before the break's snapshot: the wave's total includes the bonuses.
     this.payReviveCredits('wave');
     this.phase = 'intermission';
-    this.timeLeft = 12;
+    this.timeLeft = this.intermissionSeconds;
     this.admitReadyPlayers();
     for (const player of this.players.values()) {
       if (player.waiting) continue;
@@ -2038,12 +2045,12 @@ export class RoomSimulation {
       player.bleedOutAt = 0;
       player.outsideDamageAccumulator = 0;
     }
-    this.event('resupply', { wave: this.wave, seconds: 12 });
+    this.event('resupply', { wave: this.wave, seconds: this.intermissionSeconds });
   }
 
   beginExtraction() {
     if (this.practice) return false;
-    if (this.phase !== 'wave' || this.wave < MAX_WAVES || this.toSpawn || this.spawnWarnings.size || this.zombies.size || !this.livingPlayers().length) return false;
+    if (this.phase !== 'wave' || this.wave < this.maxWaves || this.toSpawn || this.spawnWarnings.size || this.zombies.size || !this.livingPlayers().length) return false;
     this.phase = 'extraction';
     this.beginSupplyWave();
     if (this.supplyCrate) this.supplyCrate.active = false;
@@ -4240,7 +4247,7 @@ export class RoomSimulation {
       room: this.code, hostId: this.hostId, phase: this.phase, practice: this.practice, difficulty: this.difficulty, friendlyFire: this.friendlyFireOn() ? this.friendlyFire : 'off', ambiance: this.ambiance,
       paused: this.paused, pauseById: this.pauseById, ...this.seatSnapshot(),
       practiceTargets: this.practice ? this.zombieCount() : 0,
-      maxWaves: MAX_WAVES, extractionDuration: EXTRACTION_DURATION, outsideDamagePerSecond: milli(EXTERIOR.damagePerSecond * difficultyOf(this.difficulty).damageTaken),
+      maxWaves: this.maxWaves, extractionDuration: EXTRACTION_DURATION, outsideDamagePerSecond: milli(EXTERIOR.damagePerSecond * difficultyOf(this.difficulty).damageTaken),
       maxWeaponSlots: MAX_WEAPON_SLOTS, pickupReach: PICKUPS.reach,
       magnumAvailable: this.magnumAvailable(),
       companionsAvailable: this.companionsAvailable === true, // a companion brain is connected (LAN server)
@@ -4254,6 +4261,9 @@ export class RoomSimulation {
       zombiesRemaining: this.toSpawn + this.spawnWarnings.size + this.zombieCount(),
       raid: this.raidSnapshot(), nextRaidWave: this.nextRaidWave(),
       time: round(this.time), timeLeft: round(this.timeLeft),
+      // A short mode announces itself and its wave clock; classic snapshots
+      // keep their exact shape.
+      ...(this.mode === 'classic' ? {} : { mode: this.mode, waveTimeLeft: round(this.waveTimeLeft ?? 0) }),
       expedition: {
         enabled: !this.practice,
         generator: { x: GENERATOR.x, y: GENERATOR.y, z: GENERATOR.z, reach: GENERATOR.reach,
